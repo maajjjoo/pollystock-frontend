@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
-import { View, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, ActivityIndicator, TouchableOpacity, Animated } from 'react-native';
+import { SymbolView } from 'expo-symbols';
 import { router } from 'expo-router';
 import { Screen } from '@/components/ui/Screen';
 import { Card } from '@/components/ui/Card';
@@ -24,23 +25,10 @@ export default function AppShell() {
   }
 
   if (!profile) {
-    return (
-      <Screen className="p-6 justify-center items-center">
-        <View className="mb-8 items-center">
-          <Text variant="h1" className="text-center mb-2">Bienvenido a Polly Stock</Text>
-          <Text variant="body" color="secondary" className="text-center">
-            Parece que es la primera vez que usas la aplicación.
-          </Text>
-        </View>
-        <Button 
-          title="Configurar mi Inventario" 
-          variant="primary" 
-          onPress={() => router.push('/setup' as any)} 
-          className="w-full"
-        />
-      </Screen>
-    );
+    return <WelcomeIntro />;
   }
+
+  // Dashboard ... (rest of the file remains unmodified inside this replace block)
 
   return (
     <Screen className="p-4 bg-background">
@@ -52,11 +40,13 @@ export default function AppShell() {
           </Text>
         </View>
         <Button 
-          title="⚙️" 
+          title="" 
           variant="outline" 
           onPress={() => router.push('/setup' as any)} 
           className="rounded-full w-12 h-12 p-0 items-center justify-center border-border"
-        />
+        >
+          <SymbolView name="gear" size={24} tintColor="rgb(var(--color-text-secondary))" />
+        </Button>
       </View>
 
       <Text variant="h3" className="mb-3 text-text-secondary">Operaciones Rápidas</Text>
@@ -65,7 +55,7 @@ export default function AppShell() {
           className="flex-1 bg-success/10 rounded-2xl p-4 items-center justify-center border border-success/20 active:bg-success/20"
           onPress={() => router.push('/movements/entry' as any)}
         >
-          <Text className="text-3xl mb-2">📥</Text>
+          <SymbolView name="arrow.down.doc.fill" size={32} tintColor="rgb(var(--color-success))" style={{ marginBottom: 8 }} />
           <Text className="font-bold text-success">Entrada</Text>
         </TouchableOpacity>
         
@@ -73,7 +63,7 @@ export default function AppShell() {
           className="flex-1 bg-warning/10 rounded-2xl p-4 items-center justify-center border border-warning/20 active:bg-warning/20"
           onPress={() => router.push('/movements/exit' as any)}
         >
-          <Text className="text-3xl mb-2">📤</Text>
+          <SymbolView name="arrow.up.doc.fill" size={32} tintColor="rgb(var(--color-warning))" style={{ marginBottom: 8 }} />
           <Text className="font-bold text-warning">Salida</Text>
         </TouchableOpacity>
       </View>
@@ -85,13 +75,13 @@ export default function AppShell() {
           onPress={() => router.push('/products' as any)}
         >
           <View className="bg-primary/10 w-12 h-12 rounded-full items-center justify-center mr-4">
-            <Text className="text-2xl">📦</Text>
+            <SymbolView name="shippingbox.fill" size={24} tintColor="rgb(var(--color-primary))" />
           </View>
           <View className="flex-1">
             <Text className="font-bold text-lg">Catálogo de Productos</Text>
             <Text variant="caption" color="secondary">Añade, edita o busca productos</Text>
           </View>
-          <Text className="text-text-secondary text-xl">›</Text>
+          <SymbolView name="chevron.right" size={20} tintColor="rgb(var(--color-text-secondary))" />
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -99,15 +89,65 @@ export default function AppShell() {
           onPress={() => router.push('/movements' as any)}
         >
           <View className="bg-secondary/10 w-12 h-12 rounded-full items-center justify-center mr-4">
-            <Text className="text-2xl">📋</Text>
+            <SymbolView name="clock.fill" size={24} tintColor="rgb(var(--color-secondary))" />
           </View>
           <View className="flex-1">
             <Text className="font-bold text-lg">Historial de Movimientos</Text>
             <Text variant="caption" color="secondary">Revisa todas las entradas y salidas</Text>
           </View>
-          <Text className="text-text-secondary text-xl">›</Text>
+          <SymbolView name="chevron.right" size={20} tintColor="rgb(var(--color-text-secondary))" />
         </TouchableOpacity>
       </View>
+    </Screen>
+  );
+}
+
+function WelcomeIntro() {
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(20));
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  return (
+    <Screen className="bg-background flex-1 justify-center p-6">
+      <Animated.View 
+        style={{ 
+          opacity: fadeAnim, 
+          transform: [{ translateY: slideAnim }],
+          alignItems: 'center',
+          flex: 1,
+          justifyContent: 'center'
+        }}
+      >
+        <View className="w-20 h-20 bg-primary/10 rounded-3xl items-center justify-center mb-8">
+          <SymbolView name="cube.box" size={40} tintColor="rgb(var(--color-primary))" />
+        </View>
+        
+        <Text variant="h1" className="text-center mb-3">Tu asistente de inventario</Text>
+        <Text variant="body" color="secondary" className="text-center mb-10 text-lg">
+          Organiza tus productos y controla tu inventario desde un solo lugar.
+        </Text>
+
+        <Button 
+          title="Comenzar" 
+          variant="primary" 
+          onPress={() => router.push('/setup' as any)} 
+          className="w-full max-w-sm"
+        />
+      </Animated.View>
     </Screen>
   );
 }
