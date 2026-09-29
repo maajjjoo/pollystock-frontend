@@ -42,19 +42,19 @@ export default function NewProductScreen() {
   const handleSave = async () => {
     // Basic validation
     if (!name.trim()) {
-      Alert.alert('Error', 'El nombre del producto es obligatorio');
+      Alert.alert('Error', 'Ingresa un nombre.');
       return;
     }
 
     const price = parseFloat(basePrice);
     if (isNaN(price) || price < 0) {
-      Alert.alert('Error', 'El precio debe ser un número válido mayor o igual a 0');
+      Alert.alert('Error', 'Ingresa un precio válido.');
       return;
     }
 
     const stock = parseFloat(stockQuantity);
     if (isNaN(stock) || stock < 0) {
-      Alert.alert('Error', 'El stock inicial debe ser un número válido mayor o igual a 0');
+      Alert.alert('Error', 'Ingresa un stock válido.');
       return;
     }
 
@@ -62,7 +62,7 @@ export default function NewProductScreen() {
     for (const attr of attributes) {
       const val = dynamicValues[attr.id];
       if (attr.isRequired && (!val || val.toString().trim() === '')) {
-        Alert.alert('Error', `El atributo "${attr.name}" es obligatorio`);
+        Alert.alert('Error', `Completa: ${attr.name}`);
         return;
       }
       
@@ -70,7 +70,7 @@ export default function NewProductScreen() {
       if (val && val.toString().trim() !== '') {
         if (attr.dataType === 'number') {
           if (isNaN(Number(val))) {
-            Alert.alert('Error', `El atributo "${attr.name}" debe ser numérico`);
+            Alert.alert('Error', `${attr.name} debe ser un número.`);
             return;
           }
         }
@@ -90,12 +90,12 @@ export default function NewProductScreen() {
       };
 
       await saveProduct(newProduct);
-      Alert.alert('Éxito', 'Producto registrado correctamente', [
+      Alert.alert('Guardado', 'Producto agregado.', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'No se pudo guardar el producto');
+      Alert.alert('Error', 'No se pudo guardar. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -107,11 +107,11 @@ export default function NewProductScreen() {
         <Text variant="h1" className="mb-6">Nuevo Producto</Text>
 
         <Card className="mb-6">
-          <Text variant="h3" className="mb-4">Información Básica</Text>
-          <TextInput label="Nombre del Producto *" value={name} onChangeText={setName} />
+          <Text variant="h2" className="mb-4">Datos generales</Text>
+          <TextInput label="Nombre *" value={name} onChangeText={setName} />
           
           {profile.useProductCodes && (
-            <TextInput label="Código / SKU" value={sku} onChangeText={setSku} />
+            <TextInput label="Código" value={sku} onChangeText={setSku} />
           )}
 
           {profile.useCategories && (
@@ -120,14 +120,14 @@ export default function NewProductScreen() {
 
           <View className="flex-row gap-4">
             <TextInput 
-              label="Precio Base *" 
+              label="Precio *" 
               value={basePrice} 
               onChangeText={setBasePrice} 
               keyboardType="numeric" 
               className="flex-1"
             />
             <TextInput 
-              label={`Stock Inicial (${profile.defaultUnit}) *`} 
+              label={`Stock (${profile.defaultUnit}) *`} 
               value={stockQuantity} 
               onChangeText={setStockQuantity} 
               keyboardType="numeric" 
@@ -138,7 +138,7 @@ export default function NewProductScreen() {
 
         {attributes.length > 0 && (
           <Card className="mb-6">
-            <Text variant="h3" className="mb-4">Características ({profile.productType})</Text>
+            <Text variant="h2" className="mb-4">Características</Text>
             {attributes.map(attr => {
               if (attr.dataType === 'boolean') {
                 return (
@@ -164,7 +164,7 @@ export default function NewProductScreen() {
           </Card>
         )}
 
-        <Button title="Registrar Producto" variant="primary" loading={loading} onPress={handleSave} className="mb-8" />
+        <Button title="Guardar" variant="primary" loading={loading} onPress={handleSave} className="mb-8" />
       </ScrollView>
     </Screen>
   );

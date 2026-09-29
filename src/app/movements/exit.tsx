@@ -37,21 +37,21 @@ export default function StockExitScreen() {
 
   const handleConfirm = async () => {
     if (!selectedProduct) {
-      Alert.alert('Error', 'Debe seleccionar un producto');
+      Alert.alert('Error', 'Selecciona un producto.');
       return;
     }
 
     const qty = parseFloat(quantity);
     if (isNaN(qty) || qty <= 0) {
-      Alert.alert('Error', 'La cantidad debe ser mayor a cero');
+      Alert.alert('Error', 'Ingresa una cantidad válida.');
       return;
     }
 
     // CRITICAL: Stock must never become negative
     if (qty > selectedProduct.stockQuantity) {
       Alert.alert(
-        'Stock Insuficiente', 
-        `No hay suficiente stock. Quieres sacar ${qty} pero solo hay ${selectedProduct.stockQuantity} disponibles.`
+        'Stock insuficiente', 
+        `No tienes suficiente stock. Intentas sacar ${qty} pero solo tienes ${selectedProduct.stockQuantity}.`
       );
       return;
     }
@@ -76,12 +76,12 @@ export default function StockExitScreen() {
       };
       await registerMovement(movement);
 
-      Alert.alert('Éxito', 'Salida de stock registrada correctamente', [
+      Alert.alert('Guardado', 'Salida registrada.', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'No se pudo registrar la salida');
+      Alert.alert('Error', 'No se pudo guardar. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -90,9 +90,9 @@ export default function StockExitScreen() {
   if (products.length === 0 && !loading) {
     return (
       <Screen className="items-center justify-center p-4">
-        <Text variant="h3" className="mb-2">No hay productos</Text>
+        <Text variant="h2" className="mb-2">No hay productos</Text>
         <Text color="secondary" className="text-center mb-6">
-          Debe crear al menos un producto antes de registrar salidas de stock.
+          Agrega tu primer producto.
         </Text>
         <Button title="Volver" variant="outline" onPress={() => router.back()} />
       </Screen>
@@ -102,21 +102,21 @@ export default function StockExitScreen() {
   return (
     <Screen>
       <ScrollView className="flex-1 p-4">
-        <Text variant="h1" className="mb-6 text-warning">Salida de Stock</Text>
+        <Text variant="h1" className="mb-6 text-warning">Salida</Text>
 
         <Card className="mb-6">
-          <Text variant="caption" className="font-medium mb-1">Producto *</Text>
+          <Text variant="caption" className="font-medium mb-1 ml-1 text-text-secondary">Producto</Text>
           <TouchableOpacity 
             onPress={() => setModalVisible(true)}
-            className="bg-surface border border-border rounded-lg py-3 px-4 mb-4"
+            className="bg-surface border border-border rounded-xl py-3.5 px-4 mb-4"
           >
-            <Text className={selectedProduct ? 'text-text' : 'text-text-secondary'}>
-              {selectedProduct ? `${selectedProduct.name} (Stock disponible: ${selectedProduct.stockQuantity})` : 'Toca para seleccionar un producto...'}
+            <Text className={selectedProduct ? 'text-text font-medium' : 'text-text-secondary'}>
+              {selectedProduct ? `${selectedProduct.name} (Stock: ${selectedProduct.stockQuantity})` : 'Seleccionar...'}
             </Text>
           </TouchableOpacity>
 
           <TextInput 
-            label="Cantidad a retirar *" 
+            label="Cantidad" 
             value={quantity} 
             onChangeText={setQuantity} 
             keyboardType="numeric" 
@@ -124,16 +124,16 @@ export default function StockExitScreen() {
           />
 
           <TextInput 
-            label="Nota / Motivo (Opcional)" 
+            label="Nota (Opcional)" 
             value={note} 
             onChangeText={setNote} 
-            placeholder="Ej. Venta, Dañado, Merma"
+            placeholder="Ej. Venta, Merma"
           />
         </Card>
 
         <View className="flex-row gap-4 mb-8">
           <Button title="Cancelar" variant="outline" onPress={() => router.back()} className="flex-1" />
-          <Button title="Confirmar Salida" variant="destructive" loading={loading} onPress={handleConfirm} className="flex-1 bg-warning border-warning text-white" />
+          <Button title="Guardar" variant="primary" loading={loading} onPress={handleConfirm} className="flex-1 bg-warning border-warning text-white" />
         </View>
       </ScrollView>
 

@@ -37,13 +37,13 @@ export default function StockEntryScreen() {
 
   const handleConfirm = async () => {
     if (!selectedProduct) {
-      Alert.alert('Error', 'Debe seleccionar un producto');
+      Alert.alert('Error', 'Selecciona un producto.');
       return;
     }
 
     const qty = parseFloat(quantity);
     if (isNaN(qty) || qty <= 0) {
-      Alert.alert('Error', 'La cantidad debe ser mayor a cero');
+      Alert.alert('Error', 'Ingresa una cantidad válida.');
       return;
     }
 
@@ -67,12 +67,12 @@ export default function StockEntryScreen() {
       };
       await registerMovement(movement);
 
-      Alert.alert('Éxito', 'Entrada de stock registrada correctamente', [
+      Alert.alert('Guardado', 'Entrada registrada.', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'No se pudo registrar la entrada');
+      Alert.alert('Error', 'No se pudo guardar. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -81,9 +81,9 @@ export default function StockEntryScreen() {
   if (products.length === 0 && !loading) {
     return (
       <Screen className="items-center justify-center p-4">
-        <Text variant="h3" className="mb-2">No hay productos</Text>
+        <Text variant="h2" className="mb-2">No hay productos</Text>
         <Text color="secondary" className="text-center mb-6">
-          Debe crear al menos un producto antes de registrar entradas de stock.
+          Agrega tu primer producto.
         </Text>
         <Button title="Volver" variant="outline" onPress={() => router.back()} />
       </Screen>
@@ -93,21 +93,21 @@ export default function StockEntryScreen() {
   return (
     <Screen>
       <ScrollView className="flex-1 p-4">
-        <Text variant="h1" className="mb-6 text-success">Entrada de Stock</Text>
+        <Text variant="h1" className="mb-6 text-success">Entrada</Text>
 
         <Card className="mb-6">
-          <Text variant="caption" className="font-medium mb-1">Producto *</Text>
+          <Text variant="caption" className="font-medium mb-1 ml-1 text-text-secondary">Producto</Text>
           <TouchableOpacity 
             onPress={() => setModalVisible(true)}
-            className="bg-surface border border-border rounded-lg py-3 px-4 mb-4"
+            className="bg-surface border border-border rounded-xl py-3.5 px-4 mb-4"
           >
-            <Text className={selectedProduct ? 'text-text' : 'text-text-secondary'}>
-              {selectedProduct ? `${selectedProduct.name} (Stock: ${selectedProduct.stockQuantity})` : 'Toca para seleccionar un producto...'}
+            <Text className={selectedProduct ? 'text-text font-medium' : 'text-text-secondary'}>
+              {selectedProduct ? `${selectedProduct.name} (Stock: ${selectedProduct.stockQuantity})` : 'Seleccionar...'}
             </Text>
           </TouchableOpacity>
 
           <TextInput 
-            label="Cantidad *" 
+            label="Cantidad" 
             value={quantity} 
             onChangeText={setQuantity} 
             keyboardType="numeric" 
@@ -115,7 +115,7 @@ export default function StockEntryScreen() {
           />
 
           <TextInput 
-            label="Nota / Motivo (Opcional)" 
+            label="Nota (Opcional)" 
             value={note} 
             onChangeText={setNote} 
             placeholder="Ej. Compra a proveedor"
@@ -124,7 +124,7 @@ export default function StockEntryScreen() {
 
         <View className="flex-row gap-4 mb-8">
           <Button title="Cancelar" variant="outline" onPress={() => router.back()} className="flex-1" />
-          <Button title="Confirmar Entrada" variant="primary" loading={loading} onPress={handleConfirm} className="flex-1 bg-success border-success" />
+          <Button title="Guardar" variant="primary" loading={loading} onPress={handleConfirm} className="flex-1 bg-success border-success" />
         </View>
       </ScrollView>
 
