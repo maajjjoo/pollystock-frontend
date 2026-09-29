@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
+import { Switch } from '@/components/ui/Switch';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { Product } from '@/core/database/schema';
@@ -138,15 +139,28 @@ export default function NewProductScreen() {
         {attributes.length > 0 && (
           <Card className="mb-6">
             <Text variant="h3" className="mb-4">Características ({profile.productType})</Text>
-            {attributes.map(attr => (
-              <TextInput 
-                key={attr.id}
-                label={`${attr.name} ${attr.isRequired ? '*' : ''}`}
-                value={dynamicValues[attr.id] || ''}
-                onChangeText={(val) => handleDynamicChange(attr.id, val)}
-                keyboardType={attr.dataType === 'number' ? 'numeric' : 'default'}
-              />
-            ))}
+            {attributes.map(attr => {
+              if (attr.dataType === 'boolean') {
+                return (
+                  <Switch
+                    key={attr.id}
+                    label={`${attr.name} ${attr.isRequired ? '*' : ''}`}
+                    value={dynamicValues[attr.id] === 'true' || dynamicValues[attr.id] === true}
+                    onValueChange={(val) => handleDynamicChange(attr.id, val.toString())}
+                  />
+                );
+              }
+              
+              return (
+                <TextInput 
+                  key={attr.id}
+                  label={`${attr.name} ${attr.isRequired ? '*' : ''}`}
+                  value={dynamicValues[attr.id] || ''}
+                  onChangeText={(val) => handleDynamicChange(attr.id, val)}
+                  keyboardType={attr.dataType === 'number' ? 'numeric' : 'default'}
+                />
+              );
+            })}
           </Card>
         )}
 

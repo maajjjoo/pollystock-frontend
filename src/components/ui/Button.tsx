@@ -17,7 +17,7 @@ export function Button({
   ...props 
 }: ButtonProps) {
   
-  const baseStyles = 'py-3 px-4 rounded-lg flex-row justify-center items-center';
+  const baseStyles = 'py-3.5 px-4 rounded-xl flex-row justify-center items-center active:opacity-80';
   
   let variantStyles = '';
   let textVariant: 'default' | 'primary' | 'secondary' = 'default';

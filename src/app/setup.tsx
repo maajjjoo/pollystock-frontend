@@ -7,6 +7,7 @@ import { Text } from '@/components/ui/Text';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
+import { Select } from '@/components/ui/Select';
 import { BusinessProfile, AttributeDefinition, DataType } from '@/core/database/schema';
 import { saveBusinessProfile, saveAttributeDefinitions } from '@/core/database/db';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
@@ -109,9 +110,26 @@ export default function SetupScreen() {
         <Card className="mb-6">
           <Text variant="h3" className="mb-4">1. Perfil del Negocio</Text>
           <TextInput label="Nombre del Negocio / Inventario" value={name} onChangeText={setName} placeholder="Ej. Mi Tienda" />
-          <TextInput label="Tipo de Negocio" value={businessType} onChangeText={setBusinessType} placeholder="Ej. Tienda de Ropa" />
-          <TextInput label="Tipo de Producto General" value={productType} onChangeText={setProductType} placeholder="Ej. Indumentaria" />
-          <TextInput label="Unidad de Medida por Defecto" value={defaultUnit} onChangeText={setDefaultUnit} placeholder="Ej. Unidad, Kg, Litros" />
+          
+          <Select 
+            label="Categoría de tu Negocio" 
+            selectedValue={businessType} 
+            onSelect={setBusinessType} 
+            placeholder="Selecciona el giro de tu negocio..."
+            options={[
+              { label: 'Indumentaria y Moda', value: 'Indumentaria y Moda' },
+              { label: 'Alimentos y Bebidas', value: 'Alimentos y Bebidas' },
+              { label: 'Tecnología y Electrónica', value: 'Tecnología y Electrónica' },
+              { label: 'Hogar y Muebles', value: 'Hogar y Muebles' },
+              { label: 'Salud y Belleza', value: 'Salud y Belleza' },
+              { label: 'Papelería y Oficina', value: 'Papelería y Oficina' },
+              { label: 'Repuestos y Ferretería', value: 'Repuestos y Ferretería' },
+              { label: 'Otro', value: 'Otro' }
+            ]} 
+          />
+
+          <TextInput label="¿Qué productos vendes? (Ej. Remeras, Tartas, Cables)" value={productType} onChangeText={setProductType} placeholder="Ej. Indumentaria" />
+          <TextInput label="¿Cómo se miden tus productos? (Unidad por defecto)" value={defaultUnit} onChangeText={setDefaultUnit} placeholder="Ej. Unidad, Kg, Litros" />
         </Card>
 
         <Card className="mb-6">
@@ -142,19 +160,17 @@ export default function SetupScreen() {
             <Text className="font-medium mb-3">Nuevo Atributo</Text>
             <TextInput label="Nombre" value={newAttrName} onChangeText={setNewAttrName} placeholder="Ej. Talla" />
             
-            {/* Simple buttons for data type selection since we don't have a Select component yet */}
-            <Text variant="caption" className="font-medium mb-1">Tipo de Dato</Text>
-            <View className="flex-row flex-wrap gap-2 mb-4">
-              {(['text', 'number', 'boolean', 'date'] as DataType[]).map(type => (
-                <Button 
-                  key={type}
-                  title={type} 
-                  variant={newAttrType === type ? 'primary' : 'outline'} 
-                  onPress={() => setNewAttrType(type)}
-                  className="py-1 px-3"
-                />
-              ))}
-            </View>
+            <Select 
+              label="Tipo de Información" 
+              selectedValue={newAttrType} 
+              onSelect={(val) => setNewAttrType(val as DataType)} 
+              options={[
+                { label: 'Texto Corto (Ej: Color, Marca)', value: 'text' },
+                { label: 'Número (Ej: Peso, Capacidad)', value: 'number' },
+                { label: 'Sí / No (Ej: ¿Es importado?)', value: 'boolean' },
+                { label: 'Fecha (Ej: Elaboración)', value: 'date' }
+              ]} 
+            />
 
             <Switch label="¿Es un campo obligatorio?" value={newAttrRequired} onValueChange={setNewAttrRequired} className="border-b-0 mb-4" />
             <Button title="Añadir Atributo" variant="secondary" onPress={handleAddAttribute} />

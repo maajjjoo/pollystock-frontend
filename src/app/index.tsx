@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Screen } from '@/components/ui/Screen';
 import { Card } from '@/components/ui/Card';
@@ -43,69 +43,70 @@ export default function AppShell() {
   }
 
   return (
-    <Screen className="p-6">
-      <View className="mb-8">
-        <Text variant="h1" className="mb-2">{profile.name}</Text>
-        <Text variant="body" color="secondary">
-          Negocio: {profile.businessType} | Productos: {profile.productType}
-        </Text>
-      </View>
-
-      <Card className="mb-6">
-        <Text variant="h3" className="mb-4">Reglas Activas</Text>
-        <View className="space-y-2">
-          <Text>• Categorías: {profile.useCategories ? 'Sí' : 'No'}</Text>
-          <Text>• Códigos de Producto: {profile.useProductCodes ? 'Sí' : 'No'}</Text>
-          <Text>• Stock Mínimo: {profile.useMinStock ? 'Sí' : 'No'}</Text>
-          <Text>• Fechas de Vencimiento: {profile.useExpirationDates ? 'Sí' : 'No'}</Text>
-        </View>
-      </Card>
-
-      <Card className="mb-6">
-        <Text variant="h3" className="mb-4">Atributos Dinámicos</Text>
-        {attributes.length === 0 ? (
-          <Text color="secondary">No se configuraron atributos dinámicos.</Text>
-        ) : (
-          <View className="space-y-2">
-            {attributes.map(attr => (
-              <Text key={attr.id}>
-                • {attr.name} ({attr.dataType}) {attr.isRequired ? '*' : ''}
-              </Text>
-            ))}
-          </View>
-        )}
-      </Card>
-      
-      <View className="gap-3">
-        <View className="flex-row gap-3">
-          <Button 
-            title="Entrada" 
-            variant="outline" 
-            onPress={() => router.push('/movements/entry' as any)} 
-            className="flex-1 border-success"
-          />
-          <Button 
-            title="Salida" 
-            variant="outline" 
-            onPress={() => router.push('/movements/exit' as any)} 
-            className="flex-1 border-warning"
-          />
+    <Screen className="p-4 bg-background">
+      <View className="mb-6 mt-2 flex-row justify-between items-center">
+        <View>
+          <Text variant="h1" className="text-2xl font-bold">{profile.name}</Text>
+          <Text variant="caption" color="secondary" className="mt-1 font-medium">
+            {profile.businessType}
+          </Text>
         </View>
         <Button 
-          title="Ver Historial de Movimientos" 
-          variant="secondary" 
-          onPress={() => router.push('/movements' as any)} 
-        />
-        <Button 
-          title="Catálogo de Productos" 
-          variant="primary" 
-          onPress={() => router.push('/products' as any)} 
-        />
-        <Button 
-          title="Editar Configuración" 
+          title="⚙️" 
           variant="outline" 
           onPress={() => router.push('/setup' as any)} 
+          className="rounded-full w-12 h-12 p-0 items-center justify-center border-border"
         />
+      </View>
+
+      <Text variant="h3" className="mb-3 text-text-secondary">Operaciones Rápidas</Text>
+      <View className="flex-row gap-3 mb-6">
+        <TouchableOpacity 
+          className="flex-1 bg-success/10 rounded-2xl p-4 items-center justify-center border border-success/20 active:bg-success/20"
+          onPress={() => router.push('/movements/entry' as any)}
+        >
+          <Text className="text-3xl mb-2">📥</Text>
+          <Text className="font-bold text-success">Entrada</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          className="flex-1 bg-warning/10 rounded-2xl p-4 items-center justify-center border border-warning/20 active:bg-warning/20"
+          onPress={() => router.push('/movements/exit' as any)}
+        >
+          <Text className="text-3xl mb-2">📤</Text>
+          <Text className="font-bold text-warning">Salida</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Text variant="h3" className="mb-3 text-text-secondary">Gestión</Text>
+      <View className="gap-3">
+        <TouchableOpacity 
+          className="bg-surface rounded-2xl p-5 flex-row items-center border border-border shadow-sm active:opacity-80"
+          onPress={() => router.push('/products' as any)}
+        >
+          <View className="bg-primary/10 w-12 h-12 rounded-full items-center justify-center mr-4">
+            <Text className="text-2xl">📦</Text>
+          </View>
+          <View className="flex-1">
+            <Text className="font-bold text-lg">Catálogo de Productos</Text>
+            <Text variant="caption" color="secondary">Añade, edita o busca productos</Text>
+          </View>
+          <Text className="text-text-secondary text-xl">›</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          className="bg-surface rounded-2xl p-5 flex-row items-center border border-border shadow-sm active:opacity-80"
+          onPress={() => router.push('/movements' as any)}
+        >
+          <View className="bg-secondary/10 w-12 h-12 rounded-full items-center justify-center mr-4">
+            <Text className="text-2xl">📋</Text>
+          </View>
+          <View className="flex-1">
+            <Text className="font-bold text-lg">Historial de Movimientos</Text>
+            <Text variant="caption" color="secondary">Revisa todas las entradas y salidas</Text>
+          </View>
+          <Text className="text-text-secondary text-xl">›</Text>
+        </TouchableOpacity>
       </View>
     </Screen>
   );
