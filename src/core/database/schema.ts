@@ -29,3 +29,14 @@ export interface Product {
   stockQuantity: number;
   dynamicAttributes: Record<string, any>; // JSON mapping AttributeDefinition.id to value
 }
+
+export type MovementType = 'IN' | 'OUT';
+
+export interface StockMovement {
+  id: string;
+  productId: string;
+  type: MovementType;
+  quantity: number;
+  date: string; // ISO string
+  note?: string;
+}

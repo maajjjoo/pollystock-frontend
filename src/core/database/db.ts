@@ -44,6 +44,16 @@ async function initDb(database: SQLite.SQLiteDatabase) {
       stockQuantity REAL NOT NULL DEFAULT 0,
       dynamicAttributes TEXT NOT NULL DEFAULT '{}'
     );
+
+    CREATE TABLE IF NOT EXISTS stock_movement (
+      id TEXT PRIMARY KEY,
+      productId TEXT NOT NULL,
+      type TEXT NOT NULL,
+      quantity REAL NOT NULL,
+      date TEXT NOT NULL,
+      note TEXT,
+      FOREIGN KEY (productId) REFERENCES product (id) ON DELETE CASCADE
+    );
   `);
 }
 
@@ -127,4 +137,20 @@ export async function getProducts(): Promise<import('./schema').Product[]> {
 export async function deleteProduct(id: string) {
   const database = await getDb();
   await database.runAsync('DELETE FROM product WHERE id = ?', [id]);
+}
+
+export async function saveMovement(movement: import('./schema').StockMovement) {
+  const database = await getDb();
+  await database.runAsync(`
+    INSERT INTO stock_movement (id, productId, type, quantity, date, note)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `, [movement.id, movement.productId, movement.type, movement.quantity, movement.date, movement.note || null]);
+}
+
+export async function getMovements(productId?: string): Promise<import('./schema').StockMovement[]> {
+  const database = await getDb();
+  if (productId) {
+    return await database.getAllAsync<any>('SELECT * FROM stock_movement WHERE productId = ? ORDER BY date DESC', [productId]);
+  }
+  return await database.getAllAsync<any>('SELECT * FROM stock_movement ORDER BY date DESC');
 }
