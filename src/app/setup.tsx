@@ -99,98 +99,175 @@ export default function SetupScreen() {
     }
   };
 
+  const [step, setStep] = useState(0);
+  const totalSteps = 4;
+
+  const nextStep = () => {
+    if (step === 0 && !name.trim()) {
+      Alert.alert('Error', 'Ingresa el nombre de tu negocio.');
+      return;
+    }
+    if (step === 0 && !businessType.trim()) {
+      Alert.alert('Error', 'Selecciona el tipo de negocio.');
+      return;
+    }
+    if (step === 1 && !productType.trim()) {
+      Alert.alert('Error', 'Escribe qué productos vendes.');
+      return;
+    }
+    setStep(s => Math.min(s + 1, totalSteps - 1));
+  };
+
+  const prevStep = () => {
+    setStep(s => Math.max(s - 1, 0));
+  };
+
   return (
     <Screen>
-      <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 40 }}>
-        <Text variant="h1" className="mb-2">Bienvenido</Text>
-        <Text variant="body" color="secondary" className="mb-6">
-          Configura cómo funcionará tu inventario.
-        </Text>
-
-        <Card className="mb-6">
-          <Text variant="h2" className="mb-4">Sobre tu negocio</Text>
-          <TextInput label="Nombre del negocio" value={name} onChangeText={setName} placeholder="Ej. Mi Tienda" />
-          
-          <Select 
-            label="Tipo de negocio" 
-            selectedValue={businessType} 
-            onSelect={setBusinessType} 
-            placeholder="Selecciona una opción..."
-            options={[
-              { label: 'Ropa y Accesorios', value: 'Ropa y Accesorios' },
-              { label: 'Alimentos y Bebidas', value: 'Alimentos y Bebidas' },
-              { label: 'Tecnología', value: 'Tecnología' },
-              { label: 'Hogar', value: 'Hogar' },
-              { label: 'Salud y Belleza', value: 'Salud y Belleza' },
-              { label: 'Otro', value: 'Otro' }
-            ]} 
-          />
-
-          <TextInput label="¿Qué vendes? (Ej: Remeras, Cables)" value={productType} onChangeText={setProductType} placeholder="Ej. Remeras" />
-          
-          <Select 
-            label="Unidad principal" 
-            selectedValue={defaultUnit} 
-            onSelect={setDefaultUnit} 
-            placeholder="Selecciona una unidad..."
-            options={[
-              { label: 'Unidad', value: 'Unidad' },
-              { label: 'Kilogramo (kg)', value: 'kg' },
-              { label: 'Gramo (g)', value: 'g' },
-              { label: 'Litro (L)', value: 'L' },
-              { label: 'Mililitro (ml)', value: 'ml' },
-              { label: 'Metro (m)', value: 'm' }
-            ]} 
-          />
-        </Card>
-
-        <Card className="mb-6">
-          <Text variant="h2" className="mb-4">Reglas del inventario</Text>
-          <Switch label="Usar categorías" value={useCategories} onValueChange={setUseCategories} />
-          <Switch label="Usar código o SKU" value={useProductCodes} onValueChange={setUseProductCodes} />
-          <Switch label="Alertas de stock mínimo" value={useMinStock} onValueChange={setUseMinStock} />
-          <Switch label="Fechas de vencimiento" value={useExpirationDates} onValueChange={setUseExpirationDates} />
-        </Card>
-
-        <Card className="mb-6">
-          <Text variant="h2" className="mb-2">Características extra</Text>
-          <Text variant="caption" color="secondary" className="mb-4">
-            Añade campos como Talla, Color o Marca.
-          </Text>
-
-          {attributes.map(attr => (
-            <View key={attr.id} className="flex-row items-center justify-between bg-surface-variant p-3 rounded-xl mb-2 border border-border">
-              <View>
-                <Text className="font-medium">{attr.name} {attr.isRequired ? '*' : ''}</Text>
-                <Text variant="caption" color="secondary">{attr.dataType === 'text' ? 'Texto' : attr.dataType === 'number' ? 'Número' : attr.dataType === 'boolean' ? 'Sí / No' : 'Fecha'}</Text>
-              </View>
-              <Button title="Quitar" variant="outline" onPress={() => handleRemoveAttribute(attr.id)} className="py-1 px-3 border-error" />
-            </View>
-          ))}
-
-          <View className="mt-4 p-4 bg-background rounded-xl border border-border">
-            <Text className="font-semibold mb-3 text-lg">Nueva característica</Text>
-            <TextInput label="Nombre (Ej: Color)" value={newAttrName} onChangeText={setNewAttrName} placeholder="Color" />
-            
-            <Select 
-              label="Tipo de respuesta" 
-              selectedValue={newAttrType} 
-              onSelect={(val) => setNewAttrType(val as DataType)} 
-              options={[
-                { label: 'Texto', value: 'text' },
-                { label: 'Número', value: 'number' },
-                { label: 'Sí / No', value: 'boolean' },
-                { label: 'Fecha', value: 'date' }
-              ]} 
+      <View className="px-4 pt-4 pb-2">
+        {/* Progress indicator */}
+        <View className="flex-row items-center justify-between mb-2">
+          {Array.from({ length: totalSteps }).map((_, idx) => (
+            <View 
+              key={idx} 
+              className={`h-1.5 flex-1 rounded-full mx-1 ${idx <= step ? 'bg-primary' : 'bg-disabled-bg'}`} 
             />
+          ))}
+        </View>
+        <Text variant="caption" color="secondary" className="text-center font-medium">Paso {step + 1} de {totalSteps}</Text>
+      </View>
 
-            <Switch label="Es obligatorio" value={newAttrRequired} onValueChange={setNewAttrRequired} className="mb-4" />
-            <Button title="Agregar" variant="secondary" onPress={handleAddAttribute} />
+      <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 100 }}>
+        {step === 0 && (
+          <View>
+            <Text variant="h1" className="mb-2">Tu negocio</Text>
+            <Text variant="body" color="secondary" className="mb-6">
+              Empecemos con lo básico.
+            </Text>
+            <Card>
+              <TextInput label="Nombre del negocio" value={name} onChangeText={setName} placeholder="Ej. Mi Tienda" />
+              
+              <Select 
+                label="¿Qué tipo de negocio tienes?" 
+                selectedValue={businessType} 
+                onSelect={setBusinessType} 
+                placeholder="Selecciona una opción..."
+                options={[
+                  { label: 'Ropa y Accesorios', value: 'Ropa y Accesorios' },
+                  { label: 'Alimentos y Bebidas', value: 'Alimentos y Bebidas' },
+                  { label: 'Tecnología', value: 'Tecnología' },
+                  { label: 'Hogar', value: 'Hogar' },
+                  { label: 'Salud y Belleza', value: 'Salud y Belleza' },
+                  { label: 'Ferretería', value: 'Ferretería' },
+                  { label: 'Papelería', value: 'Papelería' },
+                  { label: 'Otro', value: 'Otro' }
+                ]} 
+              />
+              {businessType === 'Otro' && (
+                <TextInput label="Escribe tu tipo de negocio" value={productType} onChangeText={setProductType} placeholder="Ej. Artesanías" />
+              )}
+            </Card>
           </View>
-        </Card>
+        )}
 
-        <Button title="Guardar" variant="primary" loading={loading} onPress={handleSave} className="mb-8" />
+        {step === 1 && (
+          <View>
+            <Text variant="h1" className="mb-2">Tus productos</Text>
+            <Text variant="body" color="secondary" className="mb-6">
+              ¿Qué tipo de artículos manejas?
+            </Text>
+            <Card>
+              <TextInput label="Productos principales" value={productType} onChangeText={setProductType} placeholder="Ej. Camisetas, Zapatos" />
+              
+              <Select 
+                label="¿Cómo controlas la cantidad?" 
+                selectedValue={defaultUnit} 
+                onSelect={setDefaultUnit} 
+                placeholder="Selecciona una unidad..."
+                options={[
+                  { label: 'Unidades', value: 'Unidad' },
+                  { label: 'Kilogramos (kg)', value: 'kg' },
+                  { label: 'Gramos (g)', value: 'g' },
+                  { label: 'Litros (L)', value: 'L' },
+                  { label: 'Mililitros (ml)', value: 'ml' },
+                  { label: 'Metros (m)', value: 'm' }
+                ]} 
+              />
+            </Card>
+          </View>
+        )}
+
+        {step === 2 && (
+          <View>
+            <Text variant="h1" className="mb-2">Información</Text>
+            <Text variant="body" color="secondary" className="mb-6">
+              ¿Qué información extra necesitas guardar de tus productos?
+            </Text>
+            
+            {attributes.length > 0 && (
+              <Card className="mb-4">
+                {attributes.map(attr => (
+                  <View key={attr.id} className="flex-row items-center justify-between bg-surface-variant p-3 rounded-xl mb-2 border border-border">
+                    <View>
+                      <Text className="font-medium">{attr.name} {attr.isRequired ? '*' : ''}</Text>
+                      <Text variant="caption" color="secondary">
+                        {attr.dataType === 'text' ? 'Texto' : attr.dataType === 'number' ? 'Número' : attr.dataType === 'boolean' ? 'Sí / No' : 'Fecha'}
+                      </Text>
+                    </View>
+                    <Button title="Quitar" variant="outline" onPress={() => handleRemoveAttribute(attr.id)} className="py-1 px-3 border-error" />
+                  </View>
+                ))}
+              </Card>
+            )}
+
+            <Card>
+              <Text className="font-semibold mb-3 text-lg">Nueva característica</Text>
+              <TextInput label="Nombre (Ej: Marca, Color)" value={newAttrName} onChangeText={setNewAttrName} placeholder="Color" />
+              
+              <Select 
+                label="Tipo de respuesta" 
+                selectedValue={newAttrType} 
+                onSelect={(val) => setNewAttrType(val as DataType)} 
+                options={[
+                  { label: 'Texto', value: 'text' },
+                  { label: 'Número', value: 'number' },
+                  { label: 'Sí / No', value: 'boolean' },
+                  { label: 'Fecha', value: 'date' }
+                ]} 
+              />
+              <Switch label="Es obligatorio" value={newAttrRequired} onValueChange={setNewAttrRequired} className="mb-4" />
+              <Button title="Agregar" variant="secondary" onPress={handleAddAttribute} />
+            </Card>
+          </View>
+        )}
+
+        {step === 3 && (
+          <View>
+            <Text variant="h1" className="mb-2">Reglas de inventario</Text>
+            <Text variant="body" color="secondary" className="mb-6">
+              Configura cómo gestionarás el stock.
+            </Text>
+            <Card>
+              <Switch label="¿Quieres usar categorías?" value={useCategories} onValueChange={setUseCategories} />
+              <Switch label="¿Quieres usar códigos de producto?" value={useProductCodes} onValueChange={setUseProductCodes} />
+              <Switch label="¿Quieres alertas de stock mínimo?" value={useMinStock} onValueChange={setUseMinStock} />
+              <Switch label="¿Tus productos tienen fecha de vencimiento?" value={useExpirationDates} onValueChange={setUseExpirationDates} />
+            </Card>
+          </View>
+        )}
       </ScrollView>
+
+      {/* Footer navigation */}
+      <View className="p-4 bg-surface border-t border-border flex-row gap-4">
+        {step > 0 && (
+          <Button title="Volver" variant="outline" onPress={prevStep} className="flex-1" />
+        )}
+        {step < totalSteps - 1 ? (
+          <Button title="Continuar" variant="primary" onPress={nextStep} className="flex-1" />
+        ) : (
+          <Button title="Guardar" variant="primary" loading={loading} onPress={handleSave} className="flex-1" />
+        )}
+      </View>
     </Screen>
   );
 }
