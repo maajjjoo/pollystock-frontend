@@ -76,11 +76,23 @@ export default function AppShell() {
         )}
       </Card>
       
-      <Button 
-        title="Editar Configuración" 
-        variant="outline" 
-        onPress={() => router.push('/setup' as any)} 
-      />
+      <View className="gap-3">
+        <Button 
+          title="Ver Productos" 
+          variant="primary" 
+          onPress={() => router.push('/products' as any)} 
+        />
+        <Button 
+          title="Nuevo Producto" 
+          variant="secondary" 
+          onPress={() => router.push('/products/new' as any)} 
+        />
+        <Button 
+          title="Editar Configuración" 
+          variant="outline" 
+          onPress={() => router.push('/setup' as any)} 
+        />
+      </View>
     </Screen>
   );
 }
