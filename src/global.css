@@ -1,9 +1,62 @@
-:root {
-  --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-    Segoe UI Symbol, Noto Color Emoji;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
-  --font-serif: Georgia, 'Times New Roman', serif;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Main brand colors */
+    --color-primary: 59 130 246; /* blue-500 */
+    --color-secondary: 16 185 129; /* emerald-500 */
+    
+    /* Backgrounds & Surfaces */
+    --color-background: 249 250 251; /* gray-50 */
+    --color-surface: 255 255 255; /* white */
+    
+    /* Text */
+    --color-text: 17 24 39; /* gray-900 */
+    --color-text-secondary: 107 114 128; /* gray-500 */
+    
+    /* Borders & States */
+    --color-border: 229 231 235; /* gray-200 */
+    --color-disabled: 156 163 175; /* gray-400 */
+    --color-disabled-bg: 243 244 246; /* gray-100 */
+    
+    /* Semantic/Status */
+    --color-success: 34 197 94; /* green-500 */
+    --color-warning: 245 158 11; /* amber-500 */
+    --color-error: 239 68 68; /* red-500 */
+
+    /* Typography settings */
+    --font-display:
+      Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+      Segoe UI Symbol, Noto Color Emoji;
+    --font-mono:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
+    --font-serif: Georgia, 'Times New Roman', serif;
+  }
+
+  .dark:root {
+    /* Main brand colors */
+    --color-primary: 96 165 250; /* blue-400 */
+    --color-secondary: 52 211 153; /* emerald-400 */
+    
+    /* Backgrounds & Surfaces */
+    --color-background: 17 24 39; /* gray-900 */
+    --color-surface: 31 41 55; /* gray-800 */
+    
+    /* Text */
+    --color-text: 249 250 251; /* gray-50 */
+    --color-text-secondary: 156 163 175; /* gray-400 */
+    
+    /* Borders & States */
+    --color-border: 55 65 81; /* gray-700 */
+    --color-disabled: 107 114 128; /* gray-500 */
+    --color-disabled-bg: 55 65 81; /* gray-700 */
+    
+    /* Semantic/Status */
+    --color-success: 74 222 128; /* green-400 */
+    --color-warning: 251 191 36; /* amber-400 */
+    --color-error: 248 113 113; /* red-400 */
+  }
 }

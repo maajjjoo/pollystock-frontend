@@ -1,98 +1,86 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { router } from 'expo-router';
+import { Screen } from '@/components/ui/Screen';
+import { Card } from '@/components/ui/Card';
+import { Text } from '@/components/ui/Text';
+import { Button } from '@/components/ui/Button';
+import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+export default function AppShell() {
+  const { profile, attributes, isLoading, loadConfig } = useConfigStore();
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
+  useEffect(() => {
+    loadConfig();
+  }, [loadConfig]);
+
+  if (isLoading) {
     return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
+      <Screen className="items-center justify-center">
+        <ActivityIndicator size="large" color="rgb(var(--color-primary))" />
+        <Text className="mt-4">Cargando...</Text>
+      </Screen>
     );
   }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+
+  if (!profile) {
+    return (
+      <Screen className="p-6 justify-center items-center">
+        <View className="mb-8 items-center">
+          <Text variant="h1" className="text-center mb-2">Bienvenido a Polly Stock</Text>
+          <Text variant="body" color="secondary" className="text-center">
+            Parece que es la primera vez que usas la aplicación.
+          </Text>
+        </View>
+        <Button 
+          title="Configurar mi Inventario" 
+          variant="primary" 
+          onPress={() => router.push('/setup' as any)} 
+          className="w-full"
+        />
+      </Screen>
+    );
+  }
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <Screen className="p-6">
+      <View className="mb-8">
+        <Text variant="h1" className="mb-2">{profile.name}</Text>
+        <Text variant="body" color="secondary">
+          Negocio: {profile.businessType} | Productos: {profile.productType}
+        </Text>
+      </View>
+
+      <Card className="mb-6">
+        <Text variant="h3" className="mb-4">Reglas Activas</Text>
+        <View className="space-y-2">
+          <Text>• Categorías: {profile.useCategories ? 'Sí' : 'No'}</Text>
+          <Text>• Códigos de Producto: {profile.useProductCodes ? 'Sí' : 'No'}</Text>
+          <Text>• Stock Mínimo: {profile.useMinStock ? 'Sí' : 'No'}</Text>
+          <Text>• Fechas de Vencimiento: {profile.useExpirationDates ? 'Sí' : 'No'}</Text>
+        </View>
+      </Card>
+
+      <Card className="mb-6">
+        <Text variant="h3" className="mb-4">Atributos Dinámicos</Text>
+        {attributes.length === 0 ? (
+          <Text color="secondary">No se configuraron atributos dinámicos.</Text>
+        ) : (
+          <View className="space-y-2">
+            {attributes.map(attr => (
+              <Text key={attr.id}>
+                • {attr.name} ({attr.dataType}) {attr.isRequired ? '*' : ''}
+              </Text>
+            ))}
+          </View>
+        )}
+      </Card>
+      
+      <Button 
+        title="Editar Configuración" 
+        variant="outline" 
+        onPress={() => router.push('/setup' as any)} 
+      />
+    </Screen>
   );
 }
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
