@@ -123,3 +123,8 @@ export async function getProducts(): Promise<import('./schema').Product[]> {
     dynamicAttributes: JSON.parse(row.dynamicAttributes)
   }));
 }
+
+export async function deleteProduct(id: string) {
+  const database = await getDb();
+  await database.runAsync('DELETE FROM product WHERE id = ?', [id]);
+}

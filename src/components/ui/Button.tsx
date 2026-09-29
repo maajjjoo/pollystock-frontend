@@ -2,7 +2,7 @@ import { TouchableOpacity, TouchableOpacityProps, ActivityIndicator } from 'reac
 import { Text } from './Text';
 
 export interface ButtonProps extends TouchableOpacityProps {
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'destructive';
   title: string;
   loading?: boolean;
   className?: string;
@@ -32,6 +32,9 @@ export function Button({
         break;
       case 'secondary':
         variantStyles = 'bg-secondary';
+        break;
+      case 'destructive':
+        variantStyles = 'bg-error';
         break;
       case 'outline':
         variantStyles = 'bg-transparent border-2 border-primary';

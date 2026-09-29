@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { Product } from '@/core/database/schema';
-import { getProducts, saveProduct as dbSaveProduct } from '@/core/database/db';
+import { getProducts, saveProduct as dbSaveProduct, deleteProduct as dbDeleteProduct } from '@/core/database/db';
 
 interface ProductState {
   products: Product[];
   isLoading: boolean;
   loadProducts: () => Promise<void>;
   saveProduct: (product: Product) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
 }
 
 export const useProductStore = create<ProductState>((set, get) => ({
@@ -25,10 +26,18 @@ export const useProductStore = create<ProductState>((set, get) => ({
   saveProduct: async (product) => {
     try {
       await dbSaveProduct(product);
-      // Reload products to keep memory in sync
       await get().loadProducts();
     } catch (error) {
       console.error('Failed to save product', error);
+      throw error;
+    }
+  },
+  deleteProduct: async (id) => {
+    try {
+      await dbDeleteProduct(id);
+      await get().loadProducts();
+    } catch (error) {
+      console.error('Failed to delete product', error);
       throw error;
     }
   },
