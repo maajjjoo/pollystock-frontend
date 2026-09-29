@@ -77,15 +77,29 @@ export default function AppShell() {
       </Card>
       
       <View className="gap-3">
+        <View className="flex-row gap-3">
+          <Button 
+            title="Entrada" 
+            variant="outline" 
+            onPress={() => router.push('/movements/entry' as any)} 
+            className="flex-1 border-success"
+          />
+          <Button 
+            title="Salida" 
+            variant="outline" 
+            onPress={() => router.push('/movements/exit' as any)} 
+            className="flex-1 border-warning"
+          />
+        </View>
         <Button 
-          title="Ver Productos" 
-          variant="primary" 
-          onPress={() => router.push('/products' as any)} 
+          title="Ver Historial de Movimientos" 
+          variant="secondary" 
+          onPress={() => router.push('/movements' as any)} 
         />
         <Button 
-          title="Nuevo Producto" 
-          variant="secondary" 
-          onPress={() => router.push('/products/new' as any)} 
+          title="Catálogo de Productos" 
+          variant="primary" 
+          onPress={() => router.push('/products' as any)} 
         />
         <Button 
           title="Editar Configuración" 

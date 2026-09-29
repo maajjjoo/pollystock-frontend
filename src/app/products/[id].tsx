@@ -157,6 +157,21 @@ export default function ProductDetailScreen() {
             </Card>
           )}
 
+          <View className="flex-row gap-4 mb-6">
+            <Button 
+              title="+ Entrada" 
+              variant="outline" 
+              className="flex-1 border-success" 
+              onPress={() => router.push({ pathname: '/movements/entry', params: { productId: product.id } } as any)} 
+            />
+            <Button 
+              title="- Salida" 
+              variant="outline" 
+              className="flex-1 border-warning" 
+              onPress={() => router.push({ pathname: '/movements/exit', params: { productId: product.id } } as any)} 
+            />
+          </View>
+
           <Button title="Eliminar Producto" variant="destructive" onPress={handleDelete} />
         </ScrollView>
       </Screen>
