@@ -1,156 +1,56 @@
-import * as SQLite from 'expo-sqlite';
-import { BusinessProfile, AttributeDefinition } from './schema';
+import { BusinessProfile, AttributeDefinition, Product, StockMovement } from './schema';
 
-let db: SQLite.SQLiteDatabase | null = null;
+// IN-MEMORY MOCK DATA STORE (Replaces SQLite for Web testing)
+let mockProfile: BusinessProfile | null = null;
+let mockAttributes: AttributeDefinition[] = [];
+let mockProducts: Product[] = [];
+let mockMovements: StockMovement[] = [];
 
 export async function getDb() {
-  if (!db) {
-    db = await SQLite.openDatabaseAsync('pollystock.db');
-    await initDb(db);
-  }
-  return db;
-}
-
-async function initDb(database: SQLite.SQLiteDatabase) {
-  await database.execAsync(`
-    PRAGMA journal_mode = WAL;
-    
-    CREATE TABLE IF NOT EXISTS business_profile (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      businessType TEXT NOT NULL,
-      productType TEXT NOT NULL,
-      defaultUnit TEXT NOT NULL,
-      useCategories INTEGER NOT NULL DEFAULT 0,
-      useProductCodes INTEGER NOT NULL DEFAULT 0,
-      useMinStock INTEGER NOT NULL DEFAULT 0,
-      useExpirationDates INTEGER NOT NULL DEFAULT 0
-    );
-
-    CREATE TABLE IF NOT EXISTS attribute_definition (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE,
-      dataType TEXT NOT NULL,
-      isRequired INTEGER NOT NULL DEFAULT 0,
-      options TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS product (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      sku TEXT,
-      categoryId TEXT,
-      basePrice REAL NOT NULL DEFAULT 0,
-      stockQuantity REAL NOT NULL DEFAULT 0,
-      dynamicAttributes TEXT NOT NULL DEFAULT '{}'
-    );
-
-    CREATE TABLE IF NOT EXISTS stock_movement (
-      id TEXT PRIMARY KEY,
-      productId TEXT NOT NULL,
-      type TEXT NOT NULL,
-      quantity REAL NOT NULL,
-      date TEXT NOT NULL,
-      note TEXT,
-      FOREIGN KEY (productId) REFERENCES product (id) ON DELETE CASCADE
-    );
-  `);
+  // Mock function to keep signature compatibility if needed elsewhere
+  return {}; 
 }
 
 export async function saveBusinessProfile(profile: BusinessProfile) {
-  const database = await getDb();
-  await database.runAsync(`
-    INSERT OR REPLACE INTO business_profile 
-    (id, name, businessType, productType, defaultUnit, useCategories, useProductCodes, useMinStock, useExpirationDates)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `, [
-    profile.id, profile.name, profile.businessType, profile.productType, profile.defaultUnit,
-    profile.useCategories ? 1 : 0, profile.useProductCodes ? 1 : 0, profile.useMinStock ? 1 : 0, profile.useExpirationDates ? 1 : 0
-  ]);
+  mockProfile = { ...profile };
 }
 
 export async function getBusinessProfile(): Promise<BusinessProfile | null> {
-  const database = await getDb();
-  const result = await database.getFirstAsync<any>('SELECT * FROM business_profile LIMIT 1');
-  if (!result) return null;
-  
-  return {
-    ...result,
-    useCategories: result.useCategories === 1,
-    useProductCodes: result.useProductCodes === 1,
-    useMinStock: result.useMinStock === 1,
-    useExpirationDates: result.useExpirationDates === 1,
-  };
+  return mockProfile ? { ...mockProfile } : null;
 }
 
 export async function saveAttributeDefinitions(attributes: AttributeDefinition[]) {
-  const database = await getDb();
-  // Simplified: clear and re-insert for configuration stage
-  // In a real scenario, we'd handle updates/deletions more carefully to not break products,
-  // but during initial config, this is safe.
-  await database.runAsync('DELETE FROM attribute_definition');
-  
-  for (const attr of attributes) {
-    await database.runAsync(`
-      INSERT INTO attribute_definition (id, name, dataType, isRequired, options)
-      VALUES (?, ?, ?, ?, ?)
-    `, [attr.id, attr.name, attr.dataType, attr.isRequired ? 1 : 0, attr.options ? JSON.stringify(attr.options) : null]);
-  }
+  mockAttributes = [...attributes];
 }
 
 export async function getAttributeDefinitions(): Promise<AttributeDefinition[]> {
-  const database = await getDb();
-  const results = await database.getAllAsync<any>('SELECT * FROM attribute_definition');
-  return results.map(row => ({
-    ...row,
-    isRequired: row.isRequired === 1,
-    options: row.options ? JSON.parse(row.options) : undefined
-  }));
+  return [...mockAttributes];
 }
 
-export async function saveProduct(product: import('./schema').Product) {
-  const database = await getDb();
-  await database.runAsync(`
-    INSERT OR REPLACE INTO product 
-    (id, name, sku, categoryId, basePrice, stockQuantity, dynamicAttributes) 
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `, [
-    product.id, 
-    product.name, 
-    product.sku || null, 
-    product.categoryId || null, 
-    product.basePrice, 
-    product.stockQuantity, 
-    JSON.stringify(product.dynamicAttributes)
-  ]);
+export async function saveProduct(product: Product) {
+  const index = mockProducts.findIndex(p => p.id === product.id);
+  if (index >= 0) {
+    mockProducts[index] = { ...product };
+  } else {
+    mockProducts.push({ ...product });
+  }
 }
 
-export async function getProducts(): Promise<import('./schema').Product[]> {
-  const database = await getDb();
-  const results = await database.getAllAsync<any>('SELECT * FROM product ORDER BY name ASC');
-  return results.map(row => ({
-    ...row,
-    dynamicAttributes: JSON.parse(row.dynamicAttributes)
-  }));
+export async function getProducts(): Promise<Product[]> {
+  return [...mockProducts].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function deleteProduct(id: string) {
-  const database = await getDb();
-  await database.runAsync('DELETE FROM product WHERE id = ?', [id]);
+  mockProducts = mockProducts.filter(p => p.id !== id);
 }
 
-export async function saveMovement(movement: import('./schema').StockMovement) {
-  const database = await getDb();
-  await database.runAsync(`
-    INSERT INTO stock_movement (id, productId, type, quantity, date, note)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `, [movement.id, movement.productId, movement.type, movement.quantity, movement.date, movement.note || null]);
+export async function saveMovement(movement: StockMovement) {
+  mockMovements.unshift({ ...movement }); // Add to beginning
 }
 
-export async function getMovements(productId?: string): Promise<import('./schema').StockMovement[]> {
-  const database = await getDb();
+export async function getMovements(productId?: string): Promise<StockMovement[]> {
   if (productId) {
-    return await database.getAllAsync<any>('SELECT * FROM stock_movement WHERE productId = ? ORDER BY date DESC', [productId]);
+    return mockMovements.filter(m => m.productId === productId);
   }
-  return await database.getAllAsync<any>('SELECT * FROM stock_movement ORDER BY date DESC');
+  return [...mockMovements];
 }
