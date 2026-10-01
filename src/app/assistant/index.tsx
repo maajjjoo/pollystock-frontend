@@ -1,0 +1,251 @@
+import { useState, useRef, useEffect } from 'react';
+import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, TextInput as RNTextInput } from 'react-native';
+import { router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
+import { Screen } from '@/components/ui/Screen';
+import { Text } from '@/components/ui/Text';
+import { TextInput } from '@/components/ui/TextInput';
+import { Button } from '@/components/ui/Button';
+import { useConfigStore } from '@/features/settings/hooks/use-config-store';
+import { useProductStore } from '@/features/products/hooks/use-product-store';
+import { useMovementStore } from '@/features/stock/hooks/use-movement-store';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  isMockData?: boolean;
+}
+
+export default function AssistantScreen() {
+  const { profile } = useConfigStore();
+  const { products } = useProductStore();
+  const { movements } = useMovementStore();
+
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const SUGGESTIONS = [
+    '¿Qué productos tienen poco stock?',
+    'Analiza mi inventario.',
+    '¿Qué movimientos hubo hoy?',
+  ];
+
+  useEffect(() => {
+    // Scroll to bottom when messages change
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, [messages, isLoading]);
+
+  const handleSend = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || isLoading) return;
+
+    setInput('');
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: trimmed };
+    setMessages(prev => [...prev, userMsg]);
+    setIsLoading(true);
+
+    // Mock AI response logic
+    setTimeout(() => {
+      let responseContent = 'No pude procesar la consulta de forma real porque no hay conexión a la IA.';
+      let isMockData = true;
+
+      const lowerText = trimmed.toLowerCase();
+      if (lowerText.includes('poco stock') || lowerText.includes('reponer')) {
+        const threshold = profile?.useMinStock ? (profile as any).minStock || 5 : 5;
+        const lowStock = products.filter(p => p.stockQuantity <= threshold);
+        if (lowStock.length === 0) {
+          responseContent = 'Todos tus productos tienen un nivel de stock adecuado según tu configuración.';
+        } else {
+          responseContent = `Hay ${lowStock.length} producto(s) con stock bajo:\n\n` + 
+            lowStock.map(p => `• **${p.name}**: ${p.stockQuantity} ${profile?.defaultUnit || 'unidades'}`).join('\n') +
+            `\n\n*Recomendación:* Te sugiero reponer estos productos pronto para evitar quedarte sin disponibilidad.`;
+        }
+      } else if (lowerText.includes('analiza')) {
+        const totalStock = products.reduce((acc, p) => acc + p.stockQuantity, 0);
+        responseContent = `**Resumen del inventario**\n\n` +
+          `• Productos registrados: ${products.length}\n` +
+          `• Existencias totales: ${totalStock}\n\n` +
+          `*Recomendación:* Mantén un registro diario de tus movimientos para tener un control más exacto de tus ${profile?.productType || 'productos'}.`;
+      } else if (lowerText.includes('movimientos')) {
+        if (movements.length === 0) {
+          responseContent = 'Aún no has registrado ningún movimiento en tu inventario.';
+        } else {
+          const recent = movements.slice(0, 3);
+          responseContent = `Estos son los últimos ${recent.length} movimientos registrados:\n\n` +
+            recent.map(m => {
+              const p = products.find(prod => prod.id === m.productId);
+              const typeLabel = m.type === 'IN' ? 'Entrada' : 'Salida';
+              const sign = m.type === 'IN' ? '+' : '-';
+              return `• ${p?.name || 'Producto eliminado'} (${typeLabel} ${sign}${m.quantity})`;
+            }).join('\n');
+        }
+      }
+
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: responseContent,
+        isMockData
+      }]);
+      setIsLoading(false);
+    }, 1500);
+  };
+
+  const renderMessageContent = (content: string) => {
+    // Simple markdown-like bold rendering for mock responses
+    const parts = content.split(/(\*\*.*?\*\*)/g);
+    return (
+      <Text className="leading-relaxed text-base">
+        {parts.map((part, i) => {
+          if (part.startsWith('**') && part.endsWith('**')) {
+            return <Text key={i} className="font-bold">{part.replace(/\*\*/g, '')}</Text>;
+          }
+          return part;
+        })}
+      </Text>
+    );
+  };
+
+  return (
+    <Screen className="bg-background">
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        className="flex-1"
+      >
+        {/* Header */}
+        <View className="px-6 pt-6 pb-4 border-b border-border/50 bg-background/90">
+          <Text variant="h2" className="text-2xl text-text font-bold">Asistente</Text>
+        </View>
+
+        <ScrollView 
+          ref={scrollViewRef}
+          className="flex-1 px-4" 
+          contentContainerStyle={{ paddingVertical: 24, paddingBottom: 100 }}
+        >
+          {messages.length === 0 ? (
+            <View className="flex-1 justify-center items-center py-10 mt-10">
+              <View className="w-16 h-16 bg-primary/10 rounded-[20px] items-center justify-center mb-6">
+                <SymbolView name="sparkles" size={32} tintColor="rgb(var(--color-primary))" />
+              </View>
+              <Text variant="h3" className="mb-2 text-text">¿En qué puedo ayudarte con tu inventario?</Text>
+              <Text variant="caption" color="secondary" className="text-center mb-8 px-4 text-base">
+                Pregúntame sobre existencias, movimientos o recomendaciones para tu negocio.
+              </Text>
+              
+              <View className="w-full gap-3">
+                {SUGGESTIONS.map((sug, idx) => (
+                  <TouchableOpacity 
+                    key={idx} 
+                    onPress={() => handleSend(sug)}
+                    className="bg-surface border border-border/60 rounded-xl px-4 py-3 flex-row items-center active:bg-surface-variant shadow-sm"
+                  >
+                    <SymbolView name="message.fill" size={16} tintColor="rgb(var(--color-secondary))" className="mr-3" />
+                    <Text className="text-text-secondary font-medium flex-1">{sug}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          ) : (
+            <View className="gap-6">
+              {messages.map((msg) => (
+                <View 
+                  key={msg.id} 
+                  className={`flex-row ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  {msg.role === 'assistant' && (
+                    <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center mr-3 mt-1">
+                      <SymbolView name="sparkles" size={14} tintColor="rgb(var(--color-primary))" />
+                    </View>
+                  )}
+                  
+                  <View 
+                    className={`max-w-[80%] rounded-2xl p-4 ${
+                      msg.role === 'user' 
+                        ? 'bg-primary rounded-tr-sm' 
+                        : 'bg-surface border border-border shadow-sm rounded-tl-sm'
+                    }`}
+                  >
+                    <Text className={msg.role === 'user' ? 'text-white' : 'text-text'}>
+                      {renderMessageContent(msg.content)}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+              
+              {isLoading && (
+                <View className="flex-row justify-start">
+                  <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center mr-3 mt-1">
+                    <SymbolView name="sparkles" size={14} tintColor="rgb(var(--color-primary))" />
+                  </View>
+                  <View className="bg-surface border border-border shadow-sm rounded-2xl rounded-tl-sm p-4 w-16 items-center justify-center">
+                    <ActivityIndicator size="small" color="rgb(var(--color-primary))" />
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Input Area */}
+        <View className="border-t border-border bg-surface px-4 py-3 pb-8">
+          <View className="flex-row items-center bg-background border border-border rounded-[24px] pl-4 pr-1 py-1">
+            <RNTextInput
+              className="flex-1 text-text text-base leading-tight"
+              placeholder="Escribe una pregunta..."
+              placeholderTextColor="rgb(var(--color-disabled))"
+              value={input}
+              onChangeText={setInput}
+              maxLength={500}
+              multiline
+              style={{ minHeight: 40, maxHeight: 100, paddingTop: 10, paddingBottom: 10 }}
+            />
+            <TouchableOpacity 
+              onPress={() => handleSend(input)}
+              disabled={!input.trim() || isLoading}
+              className={`w-10 h-10 rounded-full items-center justify-center ${input.trim() && !isLoading ? 'bg-primary' : 'bg-surface-variant'}`}
+            >
+              <SymbolView name="arrow.up" size={18} tintColor={input.trim() && !isLoading ? 'white' : 'rgb(var(--color-disabled))'} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+      </KeyboardAvoidingView>
+      
+      {/* Visual Bottom Nav */}
+      <View className="absolute bottom-0 left-0 right-0 bg-surface border-t border-border flex-row items-center justify-between px-6 py-2 pb-6 shadow-sm">
+        <TouchableOpacity className="items-center opacity-50" onPress={() => router.replace('/' as any)}>
+          <View className="mb-1 py-1 px-4">
+            <SymbolView name="house" size={22} tintColor="rgb(var(--color-text))" />
+          </View>
+          <Text className="text-[10px] font-medium text-text">Inicio</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity className="items-center opacity-50" onPress={() => router.replace('/products' as any)}>
+          <View className="mb-1 py-1 px-4">
+            <SymbolView name="cube.box" size={22} tintColor="rgb(var(--color-text))" />
+          </View>
+          <Text className="text-[10px] font-medium text-text">Productos</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity className="items-center opacity-50" onPress={() => router.replace('/movements' as any)}>
+          <View className="mb-1 py-1 px-4">
+            <SymbolView name="clock.arrow.circlepath" size={22} tintColor="rgb(var(--color-text))" />
+          </View>
+          <Text className="text-[10px] font-medium text-text">Movimientos</Text>
+        </TouchableOpacity>
+        
+        <View className="items-center opacity-100">
+          <View className="mb-1 bg-primary/10 py-1 px-4 rounded-full">
+            <SymbolView name="sparkles" size={22} tintColor="rgb(var(--color-primary))" />
+          </View>
+          <Text className="text-[10px] font-semibold text-primary">Asistente</Text>
+        </View>
+      </View>
+    </Screen>
+  );
+}

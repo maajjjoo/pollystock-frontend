@@ -159,7 +159,7 @@ export default function ProductsListScreen() {
           <Text className="text-[10px] font-medium text-text">Movimientos</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity className="items-center opacity-50">
+        <TouchableOpacity className="items-center opacity-50" onPress={() => router.push('/assistant' as any)}>
           <View className="mb-1 py-1 px-4">
             <SymbolView name="sparkles" size={22} tintColor="rgb(var(--color-text))" />
           </View>
