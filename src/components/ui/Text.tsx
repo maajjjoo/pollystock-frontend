@@ -8,11 +8,11 @@ export interface TextProps extends RNTextProps {
 
 export function Text({ variant = 'body', color = 'default', className = '', ...props }: TextProps) {
   const variantStyles = {
-    h1: 'text-2xl font-bold tracking-tight',
-    h2: 'text-xl font-bold tracking-tight',
-    h3: 'text-lg font-semibold',
-    body: 'text-base',
-    caption: 'text-sm',
+    h1: 'text-2xl font-semibold tracking-tight',
+    h2: 'text-xl font-medium tracking-tight',
+    h3: 'text-lg font-medium',
+    body: 'text-base font-normal leading-relaxed',
+    caption: 'text-sm font-normal',
   };
 
   const colorStyles = {

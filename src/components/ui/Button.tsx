@@ -17,13 +17,13 @@ export function Button({
   ...props 
 }: ButtonProps) {
   
-  const baseStyles = 'py-3.5 px-4 rounded-xl flex-row justify-center items-center active:opacity-80';
+  const baseStyles = 'py-3.5 px-6 rounded-xl flex-row justify-center items-center active:opacity-80';
   
   let variantStyles = '';
   let textVariant: 'default' | 'primary' | 'secondary' = 'default';
   
   if (disabled) {
-    variantStyles = 'bg-disabled-bg border-disabled-bg';
+    variantStyles = 'bg-disabled-bg border border-border';
     textVariant = 'secondary';
   } else {
     switch (variant) {
@@ -31,13 +31,13 @@ export function Button({
         variantStyles = 'bg-primary';
         break;
       case 'secondary':
-        variantStyles = 'bg-secondary';
+        variantStyles = 'bg-surface-variant border border-border';
         break;
       case 'destructive':
         variantStyles = 'bg-error';
         break;
       case 'outline':
-        variantStyles = 'bg-transparent border-2 border-primary';
+        variantStyles = 'bg-transparent border border-primary';
         textVariant = 'primary';
         break;
     }
@@ -53,9 +53,9 @@ export function Button({
         <ActivityIndicator color={variant === 'outline' ? 'rgb(var(--color-primary))' : 'white'} />
       ) : (
         <Text 
-          variant="h3" 
+          variant="body" 
           color={textVariant} 
-          className={variant !== 'outline' && !disabled ? 'text-white' : ''}
+          className={`font-semibold ${variant !== 'outline' && variant !== 'secondary' && !disabled ? 'text-white' : ''}`}
         >
           {title}
         </Text>

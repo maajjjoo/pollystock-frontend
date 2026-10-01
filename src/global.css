@@ -4,27 +4,27 @@
 
 @layer base {
   :root {
-    /* Main brand colors */
-    --color-primary: 99 102 241; /* Indigo 500 */
-    --color-primary-variant: 79 70 229; /* Indigo 600 */
-    --color-secondary: 56 189 248; /* Sky 400 */
+    /* Main brand colors (Monochromatic sophisticated) */
+    --color-primary: 24 24 27; /* Zinc 900 */
+    --color-primary-variant: 63 63 70; /* Zinc 700 */
+    --color-secondary: 161 161 170; /* Zinc 400 */
     
     /* Backgrounds & Surfaces */
-    --color-background: 248 250 252; /* Slate 50 */
+    --color-background: 250 250 250; /* Neutral 50 */
     --color-surface: 255 255 255; /* White */
-    --color-surface-variant: 241 245 249; /* Slate 100 */
+    --color-surface-variant: 244 244 245; /* Zinc 100 */
     
     /* Text */
-    --color-text: 15 23 42; /* Slate 900 */
-    --color-text-secondary: 100 116 139; /* Slate 500 */
+    --color-text: 9 9 11; /* Zinc 950 */
+    --color-text-secondary: 113 113 122; /* Zinc 500 */
     
     /* Borders & States */
-    --color-border: 226 232 240; /* Slate 200 */
-    --color-disabled: 148 163 184; /* Slate 400 */
-    --color-disabled-bg: 241 245 249; /* Slate 100 */
-    --color-overlay: 15 23 42; /* Slate 900 for use with opacity */
+    --color-border: 228 228 231; /* Zinc 200 */
+    --color-disabled: 161 161 170; /* Zinc 400 */
+    --color-disabled-bg: 244 244 245; /* Zinc 100 */
+    --color-overlay: 9 9 11; /* Zinc 950 for opacity */
     
-    /* Semantic/Status */
+    /* Semantic/Status (subtle and reserved) */
     --color-success: 16 185 129; /* Emerald 500 */
     --color-warning: 245 158 11; /* Amber 500 */
     --color-error: 239 68 68; /* Red 500 */
@@ -36,24 +36,24 @@
 
   .dark:root {
     /* Main brand colors */
-    --color-primary: 129 140 248; /* Indigo 400 */
-    --color-primary-variant: 99 102 241; /* Indigo 500 */
-    --color-secondary: 56 189 248; /* Sky 400 */
+    --color-primary: 250 250 250; /* Neutral 50 */
+    --color-primary-variant: 212 212 216; /* Zinc 300 */
+    --color-secondary: 113 113 122; /* Zinc 500 */
     
     /* Backgrounds & Surfaces */
-    --color-background: 15 23 42; /* Slate 900 */
-    --color-surface: 30 41 59; /* Slate 800 */
-    --color-surface-variant: 51 65 85; /* Slate 700 */
+    --color-background: 9 9 11; /* Zinc 950 */
+    --color-surface: 24 24 27; /* Zinc 900 */
+    --color-surface-variant: 39 39 42; /* Zinc 800 */
     
     /* Text */
-    --color-text: 248 250 252; /* Slate 50 */
-    --color-text-secondary: 148 163 184; /* Slate 400 */
+    --color-text: 250 250 250; /* Neutral 50 */
+    --color-text-secondary: 161 161 170; /* Zinc 400 */
     
     /* Borders & States */
-    --color-border: 51 65 85; /* Slate 700 */
-    --color-disabled: 100 116 139; /* Slate 500 */
-    --color-disabled-bg: 51 65 85; /* Slate 700 */
-    --color-overlay: 2 6 23; /* Slate 950 */
+    --color-border: 39 39 42; /* Zinc 800 */
+    --color-disabled: 82 82 91; /* Zinc 600 */
+    --color-disabled-bg: 39 39 42; /* Zinc 800 */
+    --color-overlay: 0 0 0; /* Black */
     
     /* Semantic/Status */
     --color-success: 52 211 153; /* Emerald 400 */
