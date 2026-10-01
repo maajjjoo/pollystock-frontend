@@ -25,6 +25,7 @@ export interface Product {
   name: string;
   sku?: string;
   categoryId?: string;
+  imageUrl?: string;
   basePrice: number;
   stockQuantity: number;
   dynamicAttributes: Record<string, any>; // JSON mapping AttributeDefinition.id to value

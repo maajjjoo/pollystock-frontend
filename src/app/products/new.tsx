@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ScrollView, View, Alert } from 'react-native';
+import { ScrollView, View, Alert, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { Screen } from '@/components/ui/Screen';
-import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
@@ -20,16 +20,17 @@ export default function NewProductScreen() {
   // Base fields
   const [name, setName] = useState('');
   const [sku, setSku] = useState('');
-  const [categoryId, setCategoryId] = useState(''); // Simple text for now
+  const [categoryId, setCategoryId] = useState('');
   const [basePrice, setBasePrice] = useState('');
   const [stockQuantity, setStockQuantity] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
 
   // Dynamic attributes
   const [dynamicValues, setDynamicValues] = useState<Record<string, any>>({});
 
   if (!profile) {
     return (
-      <Screen className="p-6 justify-center items-center">
+      <Screen className="p-6 justify-center items-center bg-background">
         <Text>Falta configuración del negocio.</Text>
       </Screen>
     );
@@ -39,8 +40,12 @@ export default function NewProductScreen() {
     setDynamicValues(prev => ({ ...prev, [id]: value }));
   };
 
+  const handlePickImage = () => {
+    // Mock image picker for frontend-only prototype
+    setImageUrl('https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80');
+  };
+
   const handleSave = async () => {
-    // Basic validation
     if (!name.trim()) {
       Alert.alert('Error', 'Ingresa un nombre.');
       return;
@@ -58,21 +63,16 @@ export default function NewProductScreen() {
       return;
     }
 
-    // Dynamic attributes validation
     for (const attr of attributes) {
       const val = dynamicValues[attr.id];
       if (attr.isRequired && (!val || val.toString().trim() === '')) {
         Alert.alert('Error', `Completa: ${attr.name}`);
         return;
       }
-      
-      // Type validation
-      if (val && val.toString().trim() !== '') {
-        if (attr.dataType === 'number') {
-          if (isNaN(Number(val))) {
-            Alert.alert('Error', `${attr.name} debe ser un número.`);
-            return;
-          }
+      if (val && val.toString().trim() !== '' && attr.dataType === 'number') {
+        if (isNaN(Number(val))) {
+          Alert.alert('Error', `${attr.name} debe ser un número.`);
+          return;
         }
       }
     }
@@ -80,65 +80,98 @@ export default function NewProductScreen() {
     setLoading(true);
     try {
       const newProduct: Product = {
-        id: Date.now().toString(), // simple id generator
+        id: Date.now().toString(),
         name: name.trim(),
         sku: profile.useProductCodes ? sku.trim() : undefined,
         categoryId: profile.useCategories ? categoryId.trim() : undefined,
         basePrice: price,
         stockQuantity: stock,
+        imageUrl: imageUrl || undefined,
         dynamicAttributes: dynamicValues,
       };
 
       await saveProduct(newProduct);
-      Alert.alert('Guardado', 'Producto agregado.', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      router.back();
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'No se pudo guardar. Inténtalo de nuevo.');
+      Alert.alert('Error', 'No se pudo guardar.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Screen>
-      <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 40 }}>
-        <Text variant="h1" className="mb-6">Nuevo Producto</Text>
+    <Screen className="bg-background">
+      {/* Header */}
+      <View className="px-4 pt-4 pb-2 flex-row items-center justify-between border-b border-border/50">
+        <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
+          <SymbolView name="chevron.left" size={24} tintColor="rgb(var(--color-text))" />
+        </TouchableOpacity>
+        <Text variant="h2" className="text-xl text-text font-bold">Añadir producto</Text>
+        <View className="w-10" />
+      </View>
 
-        <Card className="mb-6">
-          <Text variant="h2" className="mb-4">Datos generales</Text>
-          <TextInput label="Nombre *" value={name} onChangeText={setName} />
+      <ScrollView className="flex-1 px-4 pt-6" contentContainerStyle={{ paddingBottom: 120 }}>
+        
+        {/* Image Picker */}
+        <View className="items-center mb-8">
+          <TouchableOpacity 
+            onPress={handlePickImage}
+            className="w-32 h-32 rounded-3xl bg-surface border border-border shadow-sm items-center justify-center overflow-hidden active:opacity-80"
+          >
+            {imageUrl ? (
+              <Image source={{ uri: imageUrl }} className="w-full h-full" resizeMode="cover" />
+            ) : (
+              <View className="items-center justify-center">
+                <SymbolView name="camera.fill" size={32} tintColor="rgb(var(--color-disabled))" style={{ marginBottom: 8 }} />
+                <Text variant="caption" color="secondary" className="font-medium text-center px-2">Agregar{'\n'}imagen</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          {imageUrl && (
+            <TouchableOpacity onPress={() => setImageUrl('')} className="mt-3 bg-surface-variant px-4 py-1.5 rounded-full border border-border">
+              <Text variant="caption" className="font-medium text-text-secondary">Quitar imagen</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Form Fields */}
+        <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
+          <Text variant="h3" className="mb-4">Datos básicos</Text>
+          <TextInput label="Nombre del producto" value={name} onChangeText={setName} placeholder="Ej. Camiseta Básica" />
           
-          {profile.useProductCodes && (
-            <TextInput label="Código" value={sku} onChangeText={setSku} />
-          )}
-
-          {profile.useCategories && (
-            <TextInput label="Categoría" value={categoryId} onChangeText={setCategoryId} placeholder="Ej. Remeras" />
-          )}
-
           <View className="flex-row gap-4">
             <TextInput 
-              label="Precio *" 
+              label="Precio" 
               value={basePrice} 
               onChangeText={setBasePrice} 
               keyboardType="numeric" 
+              placeholder="0.00"
+              icon="dollarsign"
               className="flex-1"
             />
             <TextInput 
-              label={`Stock (${profile.defaultUnit}) *`} 
+              label={`Cantidad (${profile.defaultUnit})`} 
               value={stockQuantity} 
               onChangeText={setStockQuantity} 
               keyboardType="numeric" 
+              placeholder="0"
               className="flex-1"
             />
           </View>
-        </Card>
+
+          {profile.useCategories && (
+            <TextInput label="Categoría" value={categoryId} onChangeText={setCategoryId} placeholder="Ej. Ropa" />
+          )}
+
+          {profile.useProductCodes && (
+            <TextInput label="Código / Referencia" value={sku} onChangeText={setSku} placeholder="Ej. REF-001" />
+          )}
+        </View>
 
         {attributes.length > 0 && (
-          <Card className="mb-6">
-            <Text variant="h2" className="mb-4">Características</Text>
+          <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
+            <Text variant="h3" className="mb-4">Detalles extra</Text>
             {attributes.map(attr => {
               if (attr.dataType === 'boolean') {
                 return (
@@ -161,11 +194,14 @@ export default function NewProductScreen() {
                 />
               );
             })}
-          </Card>
+          </View>
         )}
-
-        <Button title="Guardar" variant="primary" loading={loading} onPress={handleSave} className="mb-8" />
       </ScrollView>
+
+      {/* Footer Action */}
+      <View className="absolute bottom-0 left-0 right-0 bg-surface border-t border-border p-4 pb-8 shadow-sm">
+        <Button title="Guardar producto" variant="primary" loading={loading} onPress={handleSave} className="py-4 rounded-xl" />
+      </View>
     </Screen>
   );
 }
