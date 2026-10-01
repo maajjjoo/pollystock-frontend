@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { ScrollView, View, Alert } from 'react-native';
+import { ScrollView, View, Alert, TouchableOpacity, Image } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { Screen } from '@/components/ui/Screen';
-import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/Switch';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { Product } from '@/core/database/schema';
+import { ValidationRules, validatePositiveNumber, sanitizeNumericInput } from '@/utils/validation';
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,6 +26,7 @@ export default function ProductDetailScreen() {
   const [categoryId, setCategoryId] = useState('');
   const [basePrice, setBasePrice] = useState('');
   const [stockQuantity, setStockQuantity] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [dynamicValues, setDynamicValues] = useState<Record<string, any>>({});
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function ProductDetailScreen() {
       setCategoryId(product.categoryId || '');
       setBasePrice(product.basePrice.toString());
       setStockQuantity(product.stockQuantity.toString());
+      setImageUrl(product.imageUrl || '');
       setDynamicValues(product.dynamicAttributes || {});
     }
   }, [id, products]);
@@ -44,7 +47,7 @@ export default function ProductDetailScreen() {
   const product = products.find(p => p.id === id);
   if (!product) {
     return (
-      <Screen className="items-center justify-center">
+      <Screen className="items-center justify-center bg-background">
         <Text>Producto no encontrado.</Text>
         <Button title="Volver" onPress={() => router.back()} className="mt-4" />
       </Screen>
@@ -57,24 +60,29 @@ export default function ProductDetailScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'El nombre es obligatorio'); return;
+      Alert.alert('Error', 'Este campo es obligatorio: Nombre'); return;
     }
-    const price = parseFloat(basePrice);
-    if (isNaN(price) || price < 0) {
-      Alert.alert('Error', 'Precio inválido'); return;
+    
+    const priceError = validatePositiveNumber(basePrice);
+    if (priceError) {
+      Alert.alert('Error', priceError); return;
     }
-    const stock = parseFloat(stockQuantity);
-    if (isNaN(stock) || stock < 0) {
-      Alert.alert('Error', 'Stock inválido'); return;
+    
+    const stockError = validatePositiveNumber(stockQuantity);
+    if (stockError) {
+      Alert.alert('Error', stockError); return;
     }
 
     for (const attr of attributes) {
       const val = dynamicValues[attr.id];
       if (attr.isRequired && (!val || val.toString().trim() === '')) {
-        Alert.alert('Error', `El atributo "${attr.name}" es obligatorio`); return;
+        Alert.alert('Error', `Este campo es obligatorio: ${attr.name}`); return;
       }
-      if (val && val.toString().trim() !== '' && attr.dataType === 'number' && isNaN(Number(val))) {
-        Alert.alert('Error', `El atributo "${attr.name}" debe ser numérico`); return;
+      if (val && val.toString().trim() !== '' && attr.dataType === 'number') {
+        const err = validatePositiveNumber(val.toString());
+        if (err) {
+          Alert.alert('Error', `${attr.name}: ${err}`); return;
+        }
       }
     }
 
@@ -85,8 +93,9 @@ export default function ProductDetailScreen() {
         name: name.trim(),
         sku: profile.useProductCodes ? sku.trim() : undefined,
         categoryId: profile.useCategories ? categoryId.trim() : undefined,
-        basePrice: price,
-        stockQuantity: stock,
+        basePrice: parseFloat(basePrice.replace(',', '.')),
+        stockQuantity: parseFloat(stockQuantity.replace(',', '.')),
+        imageUrl: imageUrl || undefined,
         dynamicAttributes: dynamicValues,
       };
 
@@ -100,12 +109,12 @@ export default function ProductDetailScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert('Confirmar eliminación', '¿Estás seguro de que deseas eliminar este producto?', [
+    Alert.alert('Confirmar', '¿Deseas eliminar este producto?', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: async () => {
           try {
             await deleteProduct(product.id);
-            router.back();
+            router.replace('/products' as any);
           } catch {
             Alert.alert('Error', 'No se pudo eliminar el producto');
           }
@@ -115,88 +124,133 @@ export default function ProductDetailScreen() {
 
   if (!isEditing) {
     return (
-      <Screen>
-        <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 40 }}>
-          <View className="flex-row justify-between items-center mb-6">
-            <Text variant="h1" className="flex-1 mr-4">{product.name}</Text>
-            <Button title="Editar" variant="outline" onPress={() => setIsEditing(true)} />
+      <Screen className="bg-background">
+        {/* Header */}
+        <View className="px-4 pt-4 pb-2 flex-row items-center justify-between border-b border-border/50">
+          <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
+            <SymbolView name="chevron.left" size={24} tintColor="rgb(var(--color-text))" />
+          </TouchableOpacity>
+          <Text variant="h2" className="text-xl text-text font-bold" numberOfLines={1}>{product.name}</Text>
+          <TouchableOpacity onPress={() => setIsEditing(true)} className="w-10 h-10 items-center justify-center bg-primary/10 rounded-full">
+            <SymbolView name="pencil" size={20} tintColor="rgb(var(--color-primary))" />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView className="flex-1 px-4 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
+          {/* Image */}
+          <View className="items-center mb-8">
+            <View className="w-32 h-32 rounded-3xl bg-surface-variant border border-border shadow-sm items-center justify-center overflow-hidden">
+              {product.imageUrl ? (
+                <Image source={{ uri: product.imageUrl }} className="w-full h-full" resizeMode="cover" />
+              ) : (
+                <SymbolView name="cube.box" size={40} tintColor="rgb(var(--color-disabled))" />
+              )}
+            </View>
           </View>
 
-          <Card className="mb-6">
-            <Text variant="h3" className="mb-4">Detalles Generales</Text>
-            <View className="flex-row justify-between border-b border-border py-2">
+          <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
+            <Text variant="h3" className="mb-4">Detalles Básicos</Text>
+            <View className="flex-row justify-between border-b border-border/50 py-3">
               <Text color="secondary">Precio Base</Text>
-              <Text className="font-bold">${product.basePrice.toFixed(2)}</Text>
+              <Text className="font-bold text-lg">${product.basePrice.toFixed(2)}</Text>
             </View>
-            <View className="flex-row justify-between border-b border-border py-2">
-              <Text color="secondary">Stock Disponible</Text>
-              <Text className="font-bold">{product.stockQuantity} {profile.defaultUnit}</Text>
+            <View className="flex-row justify-between border-b border-border/50 py-3">
+              <Text color="secondary">Stock</Text>
+              <Text className="font-bold text-lg">{product.stockQuantity} {profile.defaultUnit}</Text>
             </View>
             {product.sku && (
-              <View className="flex-row justify-between border-b border-border py-2">
-                <Text color="secondary">SKU / Código</Text>
-                <Text>{product.sku}</Text>
+              <View className="flex-row justify-between border-b border-border/50 py-3">
+                <Text color="secondary">Código</Text>
+                <Text className="font-medium text-text">{product.sku}</Text>
               </View>
             )}
             {product.categoryId && (
-              <View className="flex-row justify-between py-2">
+              <View className="flex-row justify-between py-3">
                 <Text color="secondary">Categoría</Text>
-                <Text>{product.categoryId}</Text>
+                <Text className="font-medium text-text">{product.categoryId}</Text>
               </View>
             )}
-          </Card>
-
-          {attributes.length > 0 && (
-            <Card className="mb-6">
-              <Text variant="h3" className="mb-4">Características ({profile.productType})</Text>
-              {attributes.map(attr => (
-                <View key={attr.id} className="flex-row justify-between border-b border-border py-2 last:border-0">
-                  <Text color="secondary">{attr.name}</Text>
-                  <Text>{product.dynamicAttributes[attr.id] || '-'}</Text>
-                </View>
-              ))}
-            </Card>
-          )}
-
-          <View className="flex-row gap-4 mb-6">
-            <Button 
-              title="+ Entrada" 
-              variant="outline" 
-              className="flex-1 border-success" 
-              onPress={() => router.push({ pathname: '/movements/entry', params: { productId: product.id } } as any)} 
-            />
-            <Button 
-              title="- Salida" 
-              variant="outline" 
-              className="flex-1 border-warning" 
-              onPress={() => router.push({ pathname: '/movements/exit', params: { productId: product.id } } as any)} 
-            />
           </View>
 
-          <Button title="Eliminar Producto" variant="destructive" onPress={handleDelete} />
+          {attributes.length > 0 && (
+            <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
+              <Text variant="h3" className="mb-4">Características ({profile.productType})</Text>
+              {attributes.map(attr => (
+                <View key={attr.id} className="flex-row justify-between border-b border-border/50 py-3 last:border-0">
+                  <Text color="secondary">{attr.name}</Text>
+                  <Text className="font-medium text-text">{product.dynamicAttributes[attr.id] || '-'}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          <Button title="Eliminar Producto" variant="outline" className="border-error text-error" onPress={handleDelete} />
         </ScrollView>
       </Screen>
     );
   }
 
+  // Edit Mode
   return (
-    <Screen>
-      <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 40 }}>
-        <Text variant="h1" className="mb-6">Editar Producto</Text>
+    <Screen className="bg-background">
+      {/* Header Edit */}
+      <View className="px-4 pt-4 pb-2 flex-row items-center justify-between border-b border-border/50">
+        <TouchableOpacity onPress={() => setIsEditing(false)} className="w-10 h-10 items-center justify-center -ml-2">
+          <SymbolView name="xmark" size={20} tintColor="rgb(var(--color-text))" />
+        </TouchableOpacity>
+        <Text variant="h2" className="text-xl text-text font-bold">Editar producto</Text>
+        <View className="w-10" />
+      </View>
 
-        <Card className="mb-6">
+      <ScrollView className="flex-1 px-4 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* Form Fields */}
+        <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
           <Text variant="h3" className="mb-4">Información Básica</Text>
-          <TextInput label="Nombre del Producto *" value={name} onChangeText={setName} />
-          {profile.useProductCodes && <TextInput label="Código / SKU" value={sku} onChangeText={setSku} />}
-          {profile.useCategories && <TextInput label="Categoría" value={categoryId} onChangeText={setCategoryId} />}
+          <TextInput 
+            label="Nombre del Producto *" 
+            value={name} 
+            onChangeText={setName} 
+            maxLength={ValidationRules.PRODUCT_NAME_MAX}
+          />
+          
           <View className="flex-row gap-4">
-            <TextInput label="Precio Base *" value={basePrice} onChangeText={setBasePrice} keyboardType="numeric" className="flex-1" />
-            <TextInput label={`Stock Inicial (${profile.defaultUnit}) *`} value={stockQuantity} onChangeText={setStockQuantity} keyboardType="numeric" className="flex-1" />
+            <TextInput 
+              label="Precio *" 
+              value={basePrice} 
+              onChangeText={t => setBasePrice(sanitizeNumericInput(t))} 
+              keyboardType="numeric" 
+              icon="dollarsign"
+              className="flex-1" 
+            />
+            <TextInput 
+              label={`Stock (${profile.defaultUnit}) *`} 
+              value={stockQuantity} 
+              onChangeText={t => setStockQuantity(sanitizeNumericInput(t))} 
+              keyboardType="numeric" 
+              className="flex-1" 
+            />
           </View>
-        </Card>
+          
+          {profile.useCategories && (
+            <TextInput 
+              label="Categoría" 
+              value={categoryId} 
+              onChangeText={setCategoryId} 
+              maxLength={ValidationRules.CATEGORY_MAX}
+            />
+          )}
+          {profile.useProductCodes && (
+            <TextInput 
+              label="Código / SKU" 
+              value={sku} 
+              onChangeText={setSku} 
+              maxLength={ValidationRules.PRODUCT_CODE_MAX}
+            />
+          )}
+        </View>
 
         {attributes.length > 0 && (
-          <Card className="mb-6">
+          <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
             <Text variant="h3" className="mb-4">Características</Text>
             {attributes.map(attr => {
               if (attr.dataType === 'boolean') {
@@ -214,19 +268,23 @@ export default function ProductDetailScreen() {
                   key={attr.id}
                   label={`${attr.name} ${attr.isRequired ? '*' : ''}`}
                   value={dynamicValues[attr.id]?.toString() || ''}
-                  onChangeText={(val) => handleDynamicChange(attr.id, val)}
+                  onChangeText={(val) => {
+                    const s = attr.dataType === 'number' ? sanitizeNumericInput(val) : val;
+                    handleDynamicChange(attr.id, s);
+                  }}
                   keyboardType={attr.dataType === 'number' ? 'numeric' : 'default'}
+                  maxLength={ValidationRules.CUSTOM_OPTION_MAX}
                 />
               );
             })}
-          </Card>
+          </View>
         )}
-
-        <View className="flex-row gap-4 mb-8">
-          <Button title="Cancelar" variant="outline" onPress={() => setIsEditing(false)} className="flex-1" />
-          <Button title="Guardar" variant="primary" loading={loading} onPress={handleSave} className="flex-1" />
-        </View>
       </ScrollView>
+
+      {/* Footer Action */}
+      <View className="absolute bottom-0 left-0 right-0 bg-surface border-t border-border p-4 pb-8 flex-row gap-4 shadow-sm">
+        <Button title="Guardar" variant="primary" loading={loading} onPress={handleSave} className="flex-1 py-4 rounded-xl" />
+      </View>
     </Screen>
   );
 }

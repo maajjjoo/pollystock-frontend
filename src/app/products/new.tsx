@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/Switch';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { Product } from '@/core/database/schema';
+import { ValidationRules, validatePositiveNumber, sanitizeNumericInput } from '@/utils/validation';
 
 export default function NewProductScreen() {
   const { profile, attributes } = useConfigStore();
@@ -41,37 +42,38 @@ export default function NewProductScreen() {
   };
 
   const handlePickImage = () => {
-    // Mock image picker for frontend-only prototype
+    // Mock image picker
     setImageUrl('https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80');
   };
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Ingresa un nombre.');
+      Alert.alert('Error', 'Este campo es obligatorio: Nombre');
       return;
     }
 
-    const price = parseFloat(basePrice);
-    if (isNaN(price) || price < 0) {
-      Alert.alert('Error', 'Ingresa un precio válido.');
+    const priceError = validatePositiveNumber(basePrice);
+    if (priceError) {
+      Alert.alert('Error', priceError);
       return;
     }
 
-    const stock = parseFloat(stockQuantity);
-    if (isNaN(stock) || stock < 0) {
-      Alert.alert('Error', 'Ingresa un stock válido.');
+    const stockError = validatePositiveNumber(stockQuantity);
+    if (stockError) {
+      Alert.alert('Error', stockError);
       return;
     }
 
     for (const attr of attributes) {
       const val = dynamicValues[attr.id];
       if (attr.isRequired && (!val || val.toString().trim() === '')) {
-        Alert.alert('Error', `Completa: ${attr.name}`);
+        Alert.alert('Error', `Este campo es obligatorio: ${attr.name}`);
         return;
       }
       if (val && val.toString().trim() !== '' && attr.dataType === 'number') {
-        if (isNaN(Number(val))) {
-          Alert.alert('Error', `${attr.name} debe ser un número.`);
+        const error = validatePositiveNumber(val.toString());
+        if (error) {
+          Alert.alert('Error', `${attr.name}: ${error}`);
           return;
         }
       }
@@ -84,8 +86,8 @@ export default function NewProductScreen() {
         name: name.trim(),
         sku: profile.useProductCodes ? sku.trim() : undefined,
         categoryId: profile.useCategories ? categoryId.trim() : undefined,
-        basePrice: price,
-        stockQuantity: stock,
+        basePrice: parseFloat(basePrice.replace(',', '.')),
+        stockQuantity: parseFloat(stockQuantity.replace(',', '.')),
         imageUrl: imageUrl || undefined,
         dynamicAttributes: dynamicValues,
       };
@@ -102,7 +104,6 @@ export default function NewProductScreen() {
 
   return (
     <Screen className="bg-background">
-      {/* Header */}
       <View className="px-4 pt-4 pb-2 flex-row items-center justify-between border-b border-border/50">
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
           <SymbolView name="chevron.left" size={24} tintColor="rgb(var(--color-text))" />
@@ -113,7 +114,6 @@ export default function NewProductScreen() {
 
       <ScrollView className="flex-1 px-4 pt-6" contentContainerStyle={{ paddingBottom: 120 }}>
         
-        {/* Image Picker */}
         <View className="items-center mb-8">
           <TouchableOpacity 
             onPress={handlePickImage}
@@ -135,25 +135,30 @@ export default function NewProductScreen() {
           )}
         </View>
 
-        {/* Form Fields */}
         <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
           <Text variant="h3" className="mb-4">Datos básicos</Text>
-          <TextInput label="Nombre del producto" value={name} onChangeText={setName} placeholder="Ej. Camiseta Básica" />
+          <TextInput 
+            label="Nombre del producto *" 
+            value={name} 
+            onChangeText={setName} 
+            placeholder="Ej. Camiseta Básica" 
+            maxLength={ValidationRules.PRODUCT_NAME_MAX}
+          />
           
           <View className="flex-row gap-4">
             <TextInput 
-              label="Precio" 
+              label="Precio *" 
               value={basePrice} 
-              onChangeText={setBasePrice} 
+              onChangeText={(text) => setBasePrice(sanitizeNumericInput(text))} 
               keyboardType="numeric" 
               placeholder="0.00"
               icon="dollarsign"
               className="flex-1"
             />
             <TextInput 
-              label={`Cantidad (${profile.defaultUnit})`} 
+              label={`Cantidad (${profile.defaultUnit}) *`} 
               value={stockQuantity} 
-              onChangeText={setStockQuantity} 
+              onChangeText={(text) => setStockQuantity(sanitizeNumericInput(text))} 
               keyboardType="numeric" 
               placeholder="0"
               className="flex-1"
@@ -161,11 +166,23 @@ export default function NewProductScreen() {
           </View>
 
           {profile.useCategories && (
-            <TextInput label="Categoría" value={categoryId} onChangeText={setCategoryId} placeholder="Ej. Ropa" />
+            <TextInput 
+              label="Categoría" 
+              value={categoryId} 
+              onChangeText={setCategoryId} 
+              placeholder="Ej. Ropa" 
+              maxLength={ValidationRules.CATEGORY_MAX}
+            />
           )}
 
           {profile.useProductCodes && (
-            <TextInput label="Código / Referencia" value={sku} onChangeText={setSku} placeholder="Ej. REF-001" />
+            <TextInput 
+              label="Código / Referencia" 
+              value={sku} 
+              onChangeText={setSku} 
+              placeholder="Ej. REF-001" 
+              maxLength={ValidationRules.PRODUCT_CODE_MAX}
+            />
           )}
         </View>
 
@@ -189,8 +206,12 @@ export default function NewProductScreen() {
                   key={attr.id}
                   label={`${attr.name} ${attr.isRequired ? '*' : ''}`}
                   value={dynamicValues[attr.id] || ''}
-                  onChangeText={(val) => handleDynamicChange(attr.id, val)}
+                  onChangeText={(val) => {
+                    const sanitized = attr.dataType === 'number' ? sanitizeNumericInput(val) : val;
+                    handleDynamicChange(attr.id, sanitized);
+                  }}
                   keyboardType={attr.dataType === 'number' ? 'numeric' : 'default'}
+                  maxLength={ValidationRules.CUSTOM_OPTION_MAX}
                 />
               );
             })}
@@ -198,7 +219,6 @@ export default function NewProductScreen() {
         )}
       </ScrollView>
 
-      {/* Footer Action */}
       <View className="absolute bottom-0 left-0 right-0 bg-surface border-t border-border p-4 pb-8 shadow-sm">
         <Button title="Guardar producto" variant="primary" loading={loading} onPress={handleSave} className="py-4 rounded-xl" />
       </View>
