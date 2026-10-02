@@ -18,6 +18,7 @@ export interface BusinessProfile {
   useProductCodes: boolean;
   useMinStock: boolean;
   useExpirationDates: boolean;
+  theme?: string;
 }
 
 export interface Product {
