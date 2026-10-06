@@ -220,6 +220,7 @@ export default function ProductDetailScreen() {
               onChangeText={t => setBasePrice(sanitizeNumericInput(t))} 
               keyboardType="numeric" 
               icon="dollarsign"
+              maxLength={ValidationRules.PRICE_MAX}
               className="flex-1" 
             />
             <TextInput 
@@ -227,6 +228,7 @@ export default function ProductDetailScreen() {
               value={stockQuantity} 
               onChangeText={t => setStockQuantity(sanitizeNumericInput(t))} 
               keyboardType="numeric" 
+              maxLength={ValidationRules.QUANTITY_MAX}
               className="flex-1" 
             />
           </View>

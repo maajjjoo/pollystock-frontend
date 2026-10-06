@@ -59,7 +59,7 @@ export default function AppShell() {
             </Text>
           </View>
           <TouchableOpacity 
-            onPress={() => router.push('/setup' as any)} 
+            onPress={() => router.push('/settings' as any)} 
             className="w-10 h-10 bg-surface rounded-full items-center justify-center border border-border shadow-sm active:opacity-70"
           >
             <SymbolView name="gearshape.fill" size={20} tintColor="rgb(var(--color-text-secondary))" />

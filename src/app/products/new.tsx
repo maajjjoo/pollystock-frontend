@@ -153,6 +153,7 @@ export default function NewProductScreen() {
               keyboardType="numeric" 
               placeholder="0.00"
               icon="dollarsign"
+              maxLength={ValidationRules.PRICE_MAX}
               className="flex-1"
             />
             <TextInput 
@@ -161,6 +162,7 @@ export default function NewProductScreen() {
               onChangeText={(text) => setStockQuantity(sanitizeNumericInput(text))} 
               keyboardType="numeric" 
               placeholder="0"
+              maxLength={ValidationRules.QUANTITY_MAX}
               className="flex-1"
             />
           </View>
