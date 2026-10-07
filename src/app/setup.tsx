@@ -11,6 +11,7 @@ import { Select } from '@/components/ui/Select';
 import { BusinessProfile, AttributeDefinition, DataType } from '@/core/database/schema';
 import { saveBusinessProfile, saveAttributeDefinitions } from '@/core/database/db';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
+import { ValidationRules } from '@/utils/validation';
 
 export default function SetupScreen() {
   const { setProfile, setAttributes } = useConfigStore();
@@ -145,7 +146,7 @@ export default function SetupScreen() {
               Empecemos con lo básico.
             </Text>
             <Card>
-              <TextInput label="Nombre del negocio" value={name} onChangeText={setName} placeholder="Ej. Mi Tienda" />
+              <TextInput label="Nombre del negocio" value={name} onChangeText={setName} placeholder="Ej. Mi Tienda" maxLength={ValidationRules.BUSINESS_NAME_MAX} />
               
               <Select 
                 label="¿Qué tipo de negocio tienes?" 
@@ -164,7 +165,7 @@ export default function SetupScreen() {
                 ]} 
               />
               {businessType === 'Otro' && (
-                <TextInput label="Escribe tu tipo de negocio" value={productType} onChangeText={setProductType} placeholder="Ej. Artesanías" />
+                <TextInput label="Escribe tu tipo de negocio" value={productType} onChangeText={setProductType} placeholder="Ej. Artesanías" maxLength={ValidationRules.BUSINESS_TYPE_MAX} />
               )}
             </Card>
           </View>
@@ -177,7 +178,7 @@ export default function SetupScreen() {
               ¿Qué tipo de artículos manejas?
             </Text>
             <Card>
-              <TextInput label="Productos principales" value={productType} onChangeText={setProductType} placeholder="Ej. Camisetas, Zapatos" />
+              <TextInput label="Productos principales" value={productType} onChangeText={setProductType} placeholder="Ej. Camisetas, Zapatos" maxLength={ValidationRules.PRODUCT_TYPE_MAX} />
               
               <Select 
                 label="¿Cómo controlas la cantidad?" 
@@ -222,7 +223,7 @@ export default function SetupScreen() {
 
             <Card>
               <Text className="font-semibold mb-3 text-lg">Nueva característica</Text>
-              <TextInput label="Nombre (Ej: Marca, Color)" value={newAttrName} onChangeText={setNewAttrName} placeholder="Color" />
+              <TextInput label="Nombre (Ej: Marca, Color)" value={newAttrName} onChangeText={setNewAttrName} placeholder="Color" maxLength={ValidationRules.CUSTOM_ATTR_NAME_MAX} />
               
               <Select 
                 label="Tipo de respuesta" 

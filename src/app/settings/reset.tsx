@@ -15,7 +15,7 @@ export default function ResetScreen() {
   const handleReset = () => {
     Alert.alert(
       '¿Estás seguro?',
-      'Esta acción eliminará toda la configuración, incluyendo los atributos de los productos. Los productos y movimientos actuales no tendrán la misma estructura.',
+      'Esta acción eliminará toda la configuración, incluyendo las características de los productos. Los productos y movimientos actuales no tendrán la misma estructura.',
       [
         { text: 'Cancelar', style: 'cancel' },
         { 
