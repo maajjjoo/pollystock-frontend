@@ -28,6 +28,7 @@ export default function NewProductScreen() {
 
   // Dynamic attributes
   const [dynamicValues, setDynamicValues] = useState<Record<string, any>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   if (!profile) {
     return (
@@ -39,47 +40,49 @@ export default function NewProductScreen() {
 
   const handleDynamicChange = (id: string, value: string) => {
     setDynamicValues(prev => ({ ...prev, [id]: value }));
+    setErrors(prev => ({ ...prev, [id]: '' }));
   };
 
   const handlePickImage = () => {
-    // Mock image picker
-    setImageUrl('https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80');
+    Alert.alert(
+      'Seleccionar imagen',
+      'Elige una opción',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Cámara', onPress: () => setImageUrl('https://placehold.co/400x400/eeeeee/999999.png?text=Foto+Simulada') },
+        { text: 'Galería', onPress: () => setImageUrl('https://placehold.co/400x400/eeeeee/999999.png?text=Imagen+Simulada') },
+      ]
+    );
   };
 
   const handleSave = async () => {
-    if (!name.trim()) {
-      Alert.alert('Error', 'Este campo es obligatorio: Nombre');
-      return;
-    }
+    const newErrors: Record<string, string> = {};
+
+    if (!name.trim()) newErrors.name = 'Este campo es obligatorio.';
 
     const priceError = validatePositiveNumber(basePrice);
-    if (priceError) {
-      Alert.alert('Error', priceError);
-      return;
-    }
+    if (priceError) newErrors.basePrice = priceError;
 
     const stockError = validatePositiveNumber(stockQuantity);
-    if (stockError) {
-      Alert.alert('Error', stockError);
-      return;
-    }
+    if (stockError) newErrors.stockQuantity = stockError;
 
     for (const attr of attributes) {
       const val = dynamicValues[attr.id];
       if (attr.isRequired && (!val || val.toString().trim() === '')) {
-        Alert.alert('Error', `Este campo es obligatorio: ${attr.name}`);
-        return;
-      }
-      if (val && val.toString().trim() !== '' && attr.dataType === 'number') {
-        const error = validatePositiveNumber(val.toString());
-        if (error) {
-          Alert.alert('Error', `${attr.name}: ${error}`);
-          return;
-        }
+        newErrors[attr.id] = 'Este campo es obligatorio.';
+      } else if (val && val.toString().trim() !== '' && attr.dataType === 'number') {
+        const err = validatePositiveNumber(val.toString());
+        if (err) newErrors[attr.id] = err;
       }
     }
 
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setLoading(true);
+    setErrors({});
     try {
       const newProduct: Product = {
         id: Date.now().toString(),
@@ -93,10 +96,11 @@ export default function NewProductScreen() {
       };
 
       await saveProduct(newProduct);
+      Alert.alert('Éxito', 'Producto agregado.');
       router.back();
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'No se pudo guardar.');
+      Alert.alert('Error', 'No se pudo guardar el producto.');
     } finally {
       setLoading(false);
     }
@@ -140,30 +144,34 @@ export default function NewProductScreen() {
           <TextInput 
             label="Nombre del producto *" 
             value={name} 
-            onChangeText={setName} 
+            onChangeText={(t) => { setName(t); setErrors(prev => ({ ...prev, name: '' })); }} 
             placeholder="Ej. Camiseta Básica" 
             maxLength={ValidationRules.PRODUCT_NAME_MAX}
+            error={errors.name}
+            showCharCount
           />
           
           <View className="flex-row gap-4">
             <TextInput 
               label="Precio *" 
               value={basePrice} 
-              onChangeText={(text) => setBasePrice(sanitizeNumericInput(text))} 
+              onChangeText={(t) => { setBasePrice(sanitizeNumericInput(t)); setErrors(prev => ({ ...prev, basePrice: '' })); }} 
               keyboardType="numeric" 
               placeholder="0.00"
               icon="dollarsign"
               maxLength={ValidationRules.PRICE_MAX}
               className="flex-1"
+              error={errors.basePrice}
             />
             <TextInput 
               label={`Cantidad (${profile.defaultUnit}) *`} 
               value={stockQuantity} 
-              onChangeText={(text) => setStockQuantity(sanitizeNumericInput(text))} 
+              onChangeText={(t) => { setStockQuantity(sanitizeNumericInput(t)); setErrors(prev => ({ ...prev, stockQuantity: '' })); }} 
               keyboardType="numeric" 
               placeholder="0"
               maxLength={ValidationRules.QUANTITY_MAX}
               className="flex-1"
+              error={errors.stockQuantity}
             />
           </View>
 
@@ -214,6 +222,7 @@ export default function NewProductScreen() {
                   }}
                   keyboardType={attr.dataType === 'number' ? 'numeric' : 'default'}
                   maxLength={ValidationRules.CUSTOM_OPTION_MAX}
+                  error={errors[attr.id]}
                 />
               );
             })}

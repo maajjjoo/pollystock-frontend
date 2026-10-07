@@ -7,8 +7,7 @@ import { Text } from '@/components/ui/Text';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
-import { useProductStore } from '@/features/products/hooks/use-product-store';
-import { useMovementStore } from '@/features/stock/hooks/use-movement-store';
+import { BottomNav } from '@/components/ui/BottomNav';
 
 interface Message {
   id: string;
@@ -19,8 +18,6 @@ interface Message {
 
 export default function AssistantScreen() {
   const { profile } = useConfigStore();
-  const { products } = useProductStore();
-  const { movements } = useMovementStore();
 
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -45,55 +42,22 @@ export default function AssistantScreen() {
     if (!trimmed || isLoading) return;
 
     setInput('');
+    // eslint-disable-next-line react-hooks/purity
     const userMsg: Message = { id: Date.now().toString(), role: 'user', content: trimmed };
     setMessages(prev => [...prev, userMsg]);
     setIsLoading(true);
 
     // Mock AI response logic
     setTimeout(() => {
-      let responseContent = 'No pude procesar la consulta de forma real porque no hay conexión a la IA.';
-      let isMockData = true;
-
-      const lowerText = trimmed.toLowerCase();
-      if (lowerText.includes('poco stock') || lowerText.includes('reponer')) {
-        const threshold = profile?.useMinStock ? (profile as any).minStock || 5 : 5;
-        const lowStock = products.filter(p => p.stockQuantity <= threshold);
-        if (lowStock.length === 0) {
-          responseContent = 'Todos tus productos tienen un nivel de stock adecuado según tu configuración.';
-        } else {
-          responseContent = `Hay ${lowStock.length} producto(s) con stock bajo:\n\n` + 
-            lowStock.map(p => `• **${p.name}**: ${p.stockQuantity} ${profile?.defaultUnit || 'unidades'}`).join('\n') +
-            `\n\n*Recomendación:* Te sugiero reponer estos productos pronto para evitar quedarte sin disponibilidad.`;
-        }
-      } else if (lowerText.includes('analiza')) {
-        const totalStock = products.reduce((acc, p) => acc + p.stockQuantity, 0);
-        responseContent = `**Resumen del inventario**\n\n` +
-          `• Productos registrados: ${products.length}\n` +
-          `• Existencias totales: ${totalStock}\n\n` +
-          `*Recomendación:* Mantén un registro diario de tus movimientos para tener un control más exacto de tus ${profile?.productType || 'productos'}.`;
-      } else if (lowerText.includes('movimientos')) {
-        if (movements.length === 0) {
-          responseContent = 'Aún no has registrado ningún movimiento en tu inventario.';
-        } else {
-          const recent = movements.slice(0, 3);
-          responseContent = `Estos son los últimos ${recent.length} movimientos registrados:\n\n` +
-            recent.map(m => {
-              const p = products.find(prod => prod.id === m.productId);
-              const typeLabel = m.type === 'IN' ? 'Entrada' : 'Salida';
-              const sign = m.type === 'IN' ? '+' : '-';
-              return `• ${p?.name || 'Producto eliminado'} (${typeLabel} ${sign}${m.quantity})`;
-            }).join('\n');
-        }
-      }
-
       setMessages(prev => [...prev, {
+        // eslint-disable-next-line react-hooks/purity
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: responseContent,
-        isMockData
+        content: 'El asistente aún no está conectado a una IA real. Por ahora no puedo responder a tus consultas.',
+        isMockData: true
       }]);
       setIsLoading(false);
-    }, 1500);
+    }, 1000);
   };
 
   const renderMessageContent = (content: string) => {
@@ -216,36 +180,7 @@ export default function AssistantScreen() {
 
       </KeyboardAvoidingView>
       
-      {/* Visual Bottom Nav */}
-      <View className="absolute bottom-0 left-0 right-0 bg-surface border-t border-border flex-row items-center justify-between px-6 py-2 pb-6 shadow-sm">
-        <TouchableOpacity className="items-center opacity-50" onPress={() => router.replace('/' as any)}>
-          <View className="mb-1 py-1 px-4">
-            <SymbolView name="house" size={22} tintColor="rgb(var(--color-text))" />
-          </View>
-          <Text className="text-[10px] font-medium text-text">Inicio</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity className="items-center opacity-50" onPress={() => router.replace('/products' as any)}>
-          <View className="mb-1 py-1 px-4">
-            <SymbolView name="cube.box" size={22} tintColor="rgb(var(--color-text))" />
-          </View>
-          <Text className="text-[10px] font-medium text-text">Productos</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity className="items-center opacity-50" onPress={() => router.replace('/movements' as any)}>
-          <View className="mb-1 py-1 px-4">
-            <SymbolView name="clock.arrow.circlepath" size={22} tintColor="rgb(var(--color-text))" />
-          </View>
-          <Text className="text-[10px] font-medium text-text">Movimientos</Text>
-        </TouchableOpacity>
-        
-        <View className="items-center opacity-100">
-          <View className="mb-1 bg-primary/10 py-1 px-4 rounded-full">
-            <SymbolView name="sparkles" size={22} tintColor="rgb(var(--color-primary))" />
-          </View>
-          <Text className="text-[10px] font-semibold text-primary">Asistente</Text>
-        </View>
-      </View>
+      <BottomNav />
     </Screen>
   );
 }

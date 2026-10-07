@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Modal, FlatList, ScrollView } from 'react-native';
+import { View, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { SymbolView } from 'expo-symbols';
 import { Text } from './Text';
 

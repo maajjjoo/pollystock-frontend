@@ -28,10 +28,12 @@ export default function ProductDetailScreen() {
   const [stockQuantity, setStockQuantity] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [dynamicValues, setDynamicValues] = useState<Record<string, any>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const product = products.find(p => p.id === id);
     if (product) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setName(product.name);
       setSku(product.sku || '');
       setCategoryId(product.categoryId || '');
@@ -56,37 +58,37 @@ export default function ProductDetailScreen() {
 
   const handleDynamicChange = (attrId: string, value: string) => {
     setDynamicValues(prev => ({ ...prev, [attrId]: value }));
+    setErrors(prev => ({ ...prev, [attrId]: '' }));
   };
 
   const handleSave = async () => {
-    if (!name.trim()) {
-      Alert.alert('Error', 'Este campo es obligatorio: Nombre'); return;
-    }
+    const newErrors: Record<string, string> = {};
+
+    if (!name.trim()) newErrors.name = 'Este campo es obligatorio.';
     
     const priceError = validatePositiveNumber(basePrice);
-    if (priceError) {
-      Alert.alert('Error', priceError); return;
-    }
+    if (priceError) newErrors.basePrice = priceError;
     
     const stockError = validatePositiveNumber(stockQuantity);
-    if (stockError) {
-      Alert.alert('Error', stockError); return;
-    }
+    if (stockError) newErrors.stockQuantity = stockError;
 
     for (const attr of attributes) {
       const val = dynamicValues[attr.id];
       if (attr.isRequired && (!val || val.toString().trim() === '')) {
-        Alert.alert('Error', `Este campo es obligatorio: ${attr.name}`); return;
-      }
-      if (val && val.toString().trim() !== '' && attr.dataType === 'number') {
+        newErrors[attr.id] = 'Este campo es obligatorio.';
+      } else if (val && val.toString().trim() !== '' && attr.dataType === 'number') {
         const err = validatePositiveNumber(val.toString());
-        if (err) {
-          Alert.alert('Error', `${attr.name}: ${err}`); return;
-        }
+        if (err) newErrors[attr.id] = err;
       }
     }
 
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setLoading(true);
+    setErrors({});
     try {
       const updatedProduct: Product = {
         ...product,
@@ -100,23 +102,25 @@ export default function ProductDetailScreen() {
       };
 
       await saveProduct(updatedProduct);
+      Alert.alert('Éxito', 'Producto actualizado.');
       setIsEditing(false);
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo actualizar el producto');
+    } catch {
+      Alert.alert('Error', 'No se pudo actualizar el producto.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = () => {
-    Alert.alert('Confirmar', '¿Deseas eliminar este producto?', [
+    Alert.alert('¿Eliminar este producto?', 'Esta acción no se puede deshacer.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: async () => {
           try {
             await deleteProduct(product.id);
+            Alert.alert('Éxito', 'Producto eliminado.');
             router.replace('/products' as any);
           } catch {
-            Alert.alert('Error', 'No se pudo eliminar el producto');
+            Alert.alert('Error', 'No se pudo eliminar el producto.');
           }
       }}
     ]);
@@ -203,33 +207,69 @@ export default function ProductDetailScreen() {
       </View>
 
       <ScrollView className="flex-1 px-4 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* Image Edit */}
+        <View className="items-center mb-8">
+          <TouchableOpacity 
+            onPress={() => {
+              Alert.alert(
+                'Seleccionar imagen',
+                'Elige una opción',
+                [
+                  { text: 'Cancelar', style: 'cancel' },
+                  { text: 'Cámara', onPress: () => setImageUrl('https://placehold.co/400x400/eeeeee/999999.png?text=Foto+Simulada') },
+                  { text: 'Galería', onPress: () => setImageUrl('https://placehold.co/400x400/eeeeee/999999.png?text=Imagen+Simulada') },
+                ]
+              );
+            }}
+            className="w-32 h-32 rounded-3xl bg-surface border border-border shadow-sm items-center justify-center overflow-hidden active:opacity-80"
+          >
+            {imageUrl ? (
+              <Image source={{ uri: imageUrl }} className="w-full h-full" resizeMode="cover" />
+            ) : (
+              <View className="items-center justify-center">
+                <SymbolView name="camera.fill" size={32} tintColor="rgb(var(--color-disabled))" style={{ marginBottom: 8 }} />
+                <Text variant="caption" color="secondary" className="font-medium text-center px-2">Agregar{'\n'}imagen</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          {imageUrl && (
+            <TouchableOpacity onPress={() => setImageUrl('')} className="mt-3 bg-surface-variant px-4 py-1.5 rounded-full border border-border">
+              <Text variant="caption" className="font-medium text-text-secondary">Quitar imagen</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Form Fields */}
         <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
           <Text variant="h3" className="mb-4">Información Básica</Text>
           <TextInput 
             label="Nombre del Producto *" 
             value={name} 
-            onChangeText={setName} 
+            onChangeText={(t) => { setName(t); setErrors(prev => ({ ...prev, name: '' })); }} 
             maxLength={ValidationRules.PRODUCT_NAME_MAX}
+            error={errors.name}
+            showCharCount
           />
           
           <View className="flex-row gap-4">
             <TextInput 
               label="Precio *" 
               value={basePrice} 
-              onChangeText={t => setBasePrice(sanitizeNumericInput(t))} 
+              onChangeText={(t) => { setBasePrice(sanitizeNumericInput(t)); setErrors(prev => ({ ...prev, basePrice: '' })); }} 
               keyboardType="numeric" 
               icon="dollarsign"
               maxLength={ValidationRules.PRICE_MAX}
               className="flex-1" 
+              error={errors.basePrice}
             />
             <TextInput 
               label={`Stock (${profile.defaultUnit}) *`} 
               value={stockQuantity} 
-              onChangeText={t => setStockQuantity(sanitizeNumericInput(t))} 
+              onChangeText={(t) => { setStockQuantity(sanitizeNumericInput(t)); setErrors(prev => ({ ...prev, stockQuantity: '' })); }} 
               keyboardType="numeric" 
               maxLength={ValidationRules.QUANTITY_MAX}
               className="flex-1" 
+              error={errors.stockQuantity}
             />
           </View>
           
@@ -276,6 +316,7 @@ export default function ProductDetailScreen() {
                   }}
                   keyboardType={attr.dataType === 'number' ? 'numeric' : 'default'}
                   maxLength={ValidationRules.CUSTOM_OPTION_MAX}
+                  error={errors[attr.id]}
                 />
               );
             })}

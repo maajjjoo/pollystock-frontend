@@ -1,15 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { View, ActivityIndicator, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import { SymbolView } from 'expo-symbols';
 import { router, useFocusEffect } from 'expo-router';
 import { Screen } from '@/components/ui/Screen';
-import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { useMovementStore } from '@/features/stock/hooks/use-movement-store';
-import { useCallback } from 'react';
+import { BottomNav } from '@/components/ui/BottomNav';
 
 export default function AppShell() {
   const { profile, loadConfig, isLoading: configLoading } = useConfigStore();
@@ -26,7 +25,7 @@ export default function AppShell() {
         loadProducts();
         loadMovements();
       }
-    }, [profile])
+    }, [profile, loadProducts, loadMovements])
   );
 
   if (configLoading) {
@@ -58,12 +57,6 @@ export default function AppShell() {
               Tu inventario
             </Text>
           </View>
-          <TouchableOpacity 
-            onPress={() => router.push('/settings' as any)} 
-            className="w-10 h-10 bg-surface rounded-full items-center justify-center border border-border shadow-sm active:opacity-70"
-          >
-            <SymbolView name="gearshape.fill" size={20} tintColor="rgb(var(--color-text-secondary))" />
-          </TouchableOpacity>
         </View>
 
         {/* 2. MAIN INVENTORY SUMMARY */}
@@ -191,36 +184,8 @@ export default function AppShell() {
         )}
       </ScrollView>
 
-      {/* 6. BOTTOM NAVIGATION (Foundation/Visual Only) */}
-      <View className="absolute bottom-0 left-0 right-0 bg-surface border-t border-border flex-row items-center justify-between px-6 py-2 pb-6 shadow-sm">
-        <View className="items-center opacity-100">
-          <View className="mb-1 bg-primary/10 py-1 px-4 rounded-full">
-            <SymbolView name="house.fill" size={22} tintColor="rgb(var(--color-primary))" />
-          </View>
-          <Text className="text-[10px] font-semibold text-primary">Inicio</Text>
-        </View>
-        
-        <TouchableOpacity className="items-center opacity-50" onPress={() => router.push('/products' as any)}>
-          <View className="mb-1 py-1 px-4">
-            <SymbolView name="cube.box" size={22} tintColor="rgb(var(--color-text))" />
-          </View>
-          <Text className="text-[10px] font-medium text-text">Productos</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity className="items-center opacity-50" onPress={() => router.push('/movements' as any)}>
-          <View className="mb-1 py-1 px-4">
-            <SymbolView name="clock.arrow.circlepath" size={22} tintColor="rgb(var(--color-text))" />
-          </View>
-          <Text className="text-[10px] font-medium text-text">Movimientos</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity className="items-center opacity-50" onPress={() => router.push('/assistant' as any)}>
-          <View className="mb-1 py-1 px-4">
-            <SymbolView name="sparkles" size={22} tintColor="rgb(var(--color-text))" />
-          </View>
-          <Text className="text-[10px] font-medium text-text">Asistente</Text>
-        </TouchableOpacity>
-      </View>
+      {/* 6. BOTTOM NAVIGATION */}
+      <BottomNav />
     </Screen>
   );
 }
@@ -242,7 +207,7 @@ function WelcomeIntro() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
   return (
     <Screen className="bg-background flex-1 justify-center p-6">

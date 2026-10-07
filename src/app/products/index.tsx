@@ -7,6 +7,7 @@ import { Text } from '@/components/ui/Text';
 import { TextInput } from '@/components/ui/TextInput';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
+import { BottomNav } from '@/components/ui/BottomNav';
 
 export default function ProductsListScreen() {
   const { products, loadProducts } = useProductStore();
@@ -57,21 +58,33 @@ export default function ProductsListScreen() {
         keyExtractor={item => item.id}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100, gap: 12 }}
         ListEmptyComponent={
-          <View className="items-center justify-center py-16 px-4">
-            <View className="w-16 h-16 bg-surface-variant rounded-full items-center justify-center mb-4">
-              <SymbolView name="cube.box" size={32} tintColor="rgb(var(--color-disabled))" />
+          search.trim() !== '' ? (
+            <View className="items-center justify-center py-16 px-4">
+              <View className="w-16 h-16 bg-surface-variant rounded-full items-center justify-center mb-4">
+                <SymbolView name="magnifyingglass" size={32} tintColor="rgb(var(--color-disabled))" />
+              </View>
+              <Text variant="h3" className="text-text mb-1">No encontramos productos</Text>
+              <Text variant="caption" color="secondary" className="text-center text-base">
+                Prueba con otro nombre o término de búsqueda.
+              </Text>
             </View>
-            <Text variant="h3" className="text-text mb-1">No hay productos</Text>
-            <Text variant="caption" color="secondary" className="text-center mb-6 text-base">
-              Agrega tu primer producto para empezar.
-            </Text>
-            <TouchableOpacity 
-              onPress={() => router.push('/products/new' as any)} 
-              className="bg-primary px-6 py-3 rounded-xl active:opacity-80"
-            >
-              <Text className="text-white font-semibold">Agregar producto</Text>
-            </TouchableOpacity>
-          </View>
+          ) : (
+            <View className="items-center justify-center py-16 px-4">
+              <View className="w-16 h-16 bg-surface-variant rounded-full items-center justify-center mb-4">
+                <SymbolView name="cube.box" size={32} tintColor="rgb(var(--color-disabled))" />
+              </View>
+              <Text variant="h3" className="text-text mb-1">No hay productos</Text>
+              <Text variant="caption" color="secondary" className="text-center mb-6 text-base">
+                Agrega tu primer producto para comenzar a organizar tu inventario.
+              </Text>
+              <TouchableOpacity 
+                onPress={() => router.push('/products/new' as any)} 
+                className="bg-primary px-6 py-3 rounded-xl active:opacity-80"
+              >
+                <Text className="text-white font-semibold">Agregar producto</Text>
+              </TouchableOpacity>
+            </View>
+          )
         }
         renderItem={({ item }) => {
           // Determine stock status
@@ -136,36 +149,7 @@ export default function ProductsListScreen() {
         }}
       />
 
-      {/* BOTTOM NAVIGATION (Foundation/Visual Only) */}
-      <View className="absolute bottom-0 left-0 right-0 bg-surface border-t border-border flex-row items-center justify-between px-6 py-2 pb-6 shadow-sm">
-        <TouchableOpacity className="items-center opacity-50" onPress={() => router.push('/' as any)}>
-          <View className="mb-1 py-1 px-4">
-            <SymbolView name="house" size={22} tintColor="rgb(var(--color-text))" />
-          </View>
-          <Text className="text-[10px] font-medium text-text">Inicio</Text>
-        </TouchableOpacity>
-        
-        <View className="items-center opacity-100">
-          <View className="mb-1 bg-primary/10 py-1 px-4 rounded-full">
-            <SymbolView name="cube.box.fill" size={22} tintColor="rgb(var(--color-primary))" />
-          </View>
-          <Text className="text-[10px] font-semibold text-primary">Productos</Text>
-        </View>
-        
-        <TouchableOpacity className="items-center opacity-50" onPress={() => router.push('/movements' as any)}>
-          <View className="mb-1 py-1 px-4">
-            <SymbolView name="clock.arrow.circlepath" size={22} tintColor="rgb(var(--color-text))" />
-          </View>
-          <Text className="text-[10px] font-medium text-text">Movimientos</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity className="items-center opacity-50" onPress={() => router.push('/assistant' as any)}>
-          <View className="mb-1 py-1 px-4">
-            <SymbolView name="sparkles" size={22} tintColor="rgb(var(--color-text))" />
-          </View>
-          <Text className="text-[10px] font-medium text-text">Asistente</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNav />
     </Screen>
   );
 }

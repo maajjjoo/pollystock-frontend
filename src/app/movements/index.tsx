@@ -4,9 +4,10 @@ import { router } from 'expo-router';
 import { Screen } from '@/components/ui/Screen';
 import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
-import { Button } from '@/components/ui/Button';
 import { useMovementStore } from '@/features/stock/hooks/use-movement-store';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
+import { BottomNav } from '@/components/ui/BottomNav';
+import { SymbolView } from 'expo-symbols';
 
 export default function MovementHistoryScreen() {
   const { movements, loadMovements, isLoading } = useMovementStore();
@@ -18,21 +19,32 @@ export default function MovementHistoryScreen() {
   }, [loadProducts, loadMovements]);
 
   return (
-    <Screen className="p-4">
-      <View className="flex-row items-center justify-between mb-6">
-        <Text variant="h1">Historial</Text>
-        <Button title="Volver" variant="outline" onPress={() => router.back()} className="py-2 px-4" />
+    <Screen className="bg-background">
+      <View className="px-6 pt-6 pb-4 border-b border-border/50 bg-background/90">
+        <Text variant="h2" className="text-2xl text-text font-bold">Movimientos</Text>
       </View>
 
       <FlatList
         data={movements}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 40, gap: 12 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 100, gap: 12 }}
         refreshing={isLoading}
         onRefresh={() => loadMovements()}
         ListEmptyComponent={
-          <View className="items-center justify-center py-10">
-            <Text color="secondary">No se han registrado movimientos.</Text>
+          <View className="items-center justify-center py-16 px-4">
+            <View className="w-16 h-16 bg-surface-variant rounded-full items-center justify-center mb-4">
+              <SymbolView name="clock.arrow.circlepath" size={32} tintColor="rgb(var(--color-disabled))" />
+            </View>
+            <Text variant="h3" className="text-text mb-1">No hay movimientos</Text>
+            <Text variant="caption" color="secondary" className="text-center text-base mb-6">
+              Los registros de entradas y salidas aparecerán aquí.
+            </Text>
+            <TouchableOpacity 
+              onPress={() => router.push('/movements/entry' as any)} 
+              className="bg-primary px-6 py-3 rounded-xl active:opacity-80"
+            >
+              <Text className="text-white font-semibold">Registrar entrada</Text>
+            </TouchableOpacity>
           </View>
         }
         renderItem={({ item }) => {
@@ -69,6 +81,7 @@ export default function MovementHistoryScreen() {
           );
         }}
       />
+      <BottomNav />
     </Screen>
   );
 }

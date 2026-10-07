@@ -8,16 +8,19 @@ import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 import { ValidationRules } from '@/utils/validation';
+import { BottomNav } from '@/components/ui/BottomNav';
+
+import { BusinessProfile } from '@/core/database/schema';
 
 export default function SettingsScreen() {
   const { profile, setProfile } = useConfigStore();
   const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editField, setEditField] = useState<{ key: keyof typeof profile, label: string, maxLen: number, isNumeric?: boolean } | null>(null);
+  const [editField, setEditField] = useState<{ key: keyof BusinessProfile, label: string, maxLen: number, isNumeric?: boolean } | null>(null);
   const [editValue, setEditValue] = useState('');
 
   if (!profile) return null;
 
-  const openEdit = (key: keyof typeof profile, label: string, maxLen: number, isNumeric = false) => {
+  const openEdit = (key: keyof BusinessProfile, label: string, maxLen: number, isNumeric = false) => {
     setEditField({ key, label, maxLen, isNumeric });
     setEditValue(profile[key]?.toString() || '');
     setEditModalVisible(true);
@@ -31,7 +34,8 @@ export default function SettingsScreen() {
       }
       
       const val = editField.isNumeric ? Number(editValue) || 0 : editValue.trim();
-      setProfile({ ...profile, [editField.key]: val });
+      setProfile({ ...profile, [editField.key]: val } as any);
+      Alert.alert('Éxito', 'Configuración actualizada.');
     }
     setEditModalVisible(false);
   };
@@ -39,11 +43,8 @@ export default function SettingsScreen() {
   return (
     <Screen className="bg-background">
       {/* Header */}
-      <View className="px-4 pt-4 pb-2 flex-row items-center border-b border-border/50">
-        <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
-          <SymbolView name="chevron.left" size={24} tintColor="rgb(var(--color-text))" />
-        </TouchableOpacity>
-        <Text variant="h2" className="text-xl text-text font-bold ml-2">Configuración</Text>
+      <View className="px-6 pt-6 pb-4 border-b border-border/50 bg-background/90">
+        <Text variant="h2" className="text-2xl text-text font-bold">Configuración</Text>
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 60 }}>
@@ -180,6 +181,8 @@ export default function SettingsScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <BottomNav />
     </Screen>
   );
 }
