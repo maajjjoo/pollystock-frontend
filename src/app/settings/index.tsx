@@ -44,7 +44,7 @@ export default function SettingsScreen() {
     <Screen className="bg-background">
       {/* Header */}
       <View className="px-6 pt-6 pb-4 border-b border-border/50 bg-background/90">
-        <Text variant="h2" className="text-2xl text-text font-bold">Configuración</Text>
+        <Text variant="h2" >Configuración</Text>
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 60 }}>
@@ -53,7 +53,7 @@ export default function SettingsScreen() {
         <View className="mt-6 mb-2 px-6">
           <Text variant="caption" color="secondary" className="uppercase tracking-wider font-bold">Mi negocio</Text>
         </View>
-        <View className="bg-surface border-y border-border px-4">
+        <View className="bg-surface border border-border rounded-[24px] px-4 overflow-hidden mx-4 mb-6">
           <SettingsRow 
             title="Nombre del negocio" 
             value={profile.name} 
@@ -71,7 +71,7 @@ export default function SettingsScreen() {
         <View className="mt-8 mb-2 px-6">
           <Text variant="caption" color="secondary" className="uppercase tracking-wider font-bold">Inventario</Text>
         </View>
-        <View className="bg-surface border-y border-border px-4">
+        <View className="bg-surface border border-border rounded-[24px] px-4 overflow-hidden mx-4 mb-6">
           <SettingsRow 
             title="Productos manejados" 
             value={profile.productType} 
@@ -121,7 +121,7 @@ export default function SettingsScreen() {
         <View className="mt-8 mb-2 px-6">
           <Text variant="caption" color="secondary" className="uppercase tracking-wider font-bold">Apariencia</Text>
         </View>
-        <View className="bg-surface border-y border-border px-4">
+        <View className="bg-surface border border-border rounded-[24px] px-4 overflow-hidden mx-4 mb-6">
           <SettingsRow 
             title="Tema" 
             value={
@@ -138,7 +138,7 @@ export default function SettingsScreen() {
         <View className="mt-8 mb-2 px-6">
           <Text variant="caption" color="secondary" className="uppercase tracking-wider font-bold">Preferencias</Text>
         </View>
-        <View className="bg-surface border-y border-border px-4 mb-8">
+        <View className="bg-surface border border-border rounded-[24px] px-4 overflow-hidden mx-4 mb-8">
           <SettingsRow 
             title="Restablecer configuración" 
             value="" 

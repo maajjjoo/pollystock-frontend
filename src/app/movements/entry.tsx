@@ -108,7 +108,7 @@ export default function StockEntryScreen() {
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
           <SymbolView name="chevron.left" size={24} tintColor="rgb(var(--color-text))" />
         </TouchableOpacity>
-        <Text variant="h2" className="text-xl text-text font-bold ml-2">Registrar entrada</Text>
+        <Text variant="h2" className="ml-2">Registrar entrada</Text>
       </View>
 
       <ScrollView className="flex-1 px-4 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
@@ -156,7 +156,7 @@ export default function StockEntryScreen() {
       <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet">
         <Screen className="bg-background">
           <View className="flex-row justify-between items-center p-4 border-b border-border/50">
-            <Text variant="h2" className="text-xl text-text font-bold">Seleccionar Producto</Text>
+            <Text variant="h2" >Seleccionar Producto</Text>
             <TouchableOpacity onPress={() => setModalVisible(false)} className="w-8 h-8 items-center justify-center bg-surface-variant rounded-full">
               <SymbolView name="xmark" size={16} tintColor="rgb(var(--color-text))" />
             </TouchableOpacity>

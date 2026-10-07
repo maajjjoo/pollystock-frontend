@@ -134,7 +134,7 @@ export default function ProductDetailScreen() {
           <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
             <SymbolView name="chevron.left" size={24} tintColor="rgb(var(--color-text))" />
           </TouchableOpacity>
-          <Text variant="h2" className="text-xl text-text font-bold" numberOfLines={1}>{product.name}</Text>
+          <Text variant="h2" numberOfLines={1}>{product.name}</Text>
           <TouchableOpacity onPress={() => setIsEditing(true)} className="w-10 h-10 items-center justify-center bg-primary/10 rounded-full">
             <SymbolView name="pencil" size={20} tintColor="rgb(var(--color-primary))" />
           </TouchableOpacity>
@@ -202,7 +202,7 @@ export default function ProductDetailScreen() {
         <TouchableOpacity onPress={() => setIsEditing(false)} className="w-10 h-10 items-center justify-center -ml-2">
           <SymbolView name="xmark" size={20} tintColor="rgb(var(--color-text))" />
         </TouchableOpacity>
-        <Text variant="h2" className="text-xl text-text font-bold">Editar producto</Text>
+        <Text variant="h2">Editar producto</Text>
         <View className="w-10" />
       </View>
 

@@ -27,7 +27,7 @@ export default function ThemeSettingsScreen() {
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
           <SymbolView name="chevron.left" size={24} tintColor="rgb(var(--color-text))" />
         </TouchableOpacity>
-        <Text variant="h2" className="text-xl text-text font-bold ml-2">Apariencia</Text>
+        <Text variant="h2" className="ml-2">Apariencia</Text>
       </View>
 
       <ScrollView className="flex-1 px-6 pt-6">
@@ -43,10 +43,10 @@ export default function ThemeSettingsScreen() {
               <TouchableOpacity
                 key={theme.id}
                 onPress={() => handleSelectTheme(theme.id)}
-                className={`bg-surface border p-5 rounded-2xl flex-row items-center justify-between ${isSelected ? 'border-primary' : 'border-border'}`}
+                className={`bg-surface border p-5 rounded-[24px] flex-row items-center justify-between shadow-sm ${isSelected ? 'border-primary' : 'border-border'}`}
               >
                 <View>
-                  <Text className="text-lg font-bold text-text mb-1">{theme.name}</Text>
+                  <Text variant="h3" className="mb-1">{theme.name}</Text>
                   <Text variant="caption" color="secondary">{theme.description}</Text>
                 </View>
                 <View className={`w-6 h-6 rounded-full border items-center justify-center ${isSelected ? 'border-primary bg-primary' : 'border-disabled'}`}>

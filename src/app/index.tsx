@@ -53,7 +53,7 @@ export default function AppShell() {
             <Text variant="caption" color="secondary" className="uppercase tracking-wider font-semibold mb-0.5">
               Hola, {profile.name}
             </Text>
-            <Text variant="h2" className="text-2xl text-text font-bold">
+            <Text variant="h2" >
               Tu inventario
             </Text>
           </View>
@@ -64,7 +64,7 @@ export default function AppShell() {
           <View className="flex-row justify-between items-start">
             <View>
               <Text className="text-white/80 font-medium mb-1">Total de {profile.productType || 'artículos'}</Text>
-              <Text className="text-white text-5xl font-bold tracking-tight">
+              <Text className="text-white text-4xl font-semibold tracking-tight">
                 {products.length === 0 ? '0' : totalItems}
               </Text>
             </View>
@@ -83,7 +83,7 @@ export default function AppShell() {
 
         {/* 3. IMPORTANT INFORMATION (Empty state since no low stock computed yet) */}
         {products.length === 0 && (
-          <View className="mb-8 bg-surface border border-border rounded-2xl p-5 flex-row items-center">
+          <View className="mb-8 bg-surface border border-border rounded-[24px] p-5 flex-row items-center">
             <View className="w-10 h-10 bg-primary/10 rounded-full items-center justify-center mr-4">
               <SymbolView name="info.circle.fill" size={18} tintColor="rgb(var(--color-primary))" />
             </View>
@@ -141,7 +141,7 @@ export default function AppShell() {
         </View>
         
         {recentMovements.length === 0 ? (
-          <View className="bg-surface rounded-2xl p-8 items-center border border-border">
+          <View className="bg-surface rounded-[24px] p-8 items-center border border-border">
             <View className="w-16 h-16 bg-surface-variant rounded-full items-center justify-center mb-4">
               <SymbolView name="doc.text.magnifyingglass" size={24} tintColor="rgb(var(--color-disabled))" />
             </View>
@@ -151,7 +151,7 @@ export default function AppShell() {
             </Text>
           </View>
         ) : (
-          <View className="bg-surface rounded-2xl border border-border overflow-hidden">
+          <View className="bg-surface rounded-[24px] border border-border overflow-hidden">
             {recentMovements.map((movement, idx) => {
               const product = products.find(p => p.id === movement.productId);
               const isEntry = movement.type === 'IN';
@@ -224,7 +224,7 @@ function WelcomeIntro() {
           <SymbolView name="cube.box.fill" size={48} tintColor="rgb(var(--color-primary))" />
         </View>
         
-        <Text variant="h1" className="text-center mb-4 text-3xl font-bold">Tu asistente de inventario</Text>
+        <Text variant="h1" className="text-center mb-4">Tu asistente de inventario</Text>
         <Text variant="body" color="secondary" className="text-center mb-12 text-lg px-4 leading-relaxed">
           Organiza tus productos y controla tu inventario fácilmente.
         </Text>

@@ -83,7 +83,7 @@ export default function AssistantScreen() {
       >
         {/* Header */}
         <View className="px-6 pt-6 pb-4 border-b border-border/50 bg-background/90">
-          <Text variant="h2" className="text-2xl text-text font-bold">Asistente</Text>
+          <Text variant="h2" >Asistente</Text>
         </View>
 
         <ScrollView 

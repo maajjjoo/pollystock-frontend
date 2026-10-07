@@ -40,7 +40,7 @@ export default function ResetScreen() {
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
           <SymbolView name="chevron.left" size={24} tintColor="rgb(var(--color-text))" />
         </TouchableOpacity>
-        <Text variant="h2" className="text-xl text-text font-bold ml-2">Restablecer</Text>
+        <Text variant="h2" className="ml-2">Restablecer</Text>
       </View>
       <View className="flex-1 px-6 pt-10 items-center">
         <View className="w-16 h-16 bg-error/10 rounded-full items-center justify-center mb-6">
@@ -52,9 +52,9 @@ export default function ResetScreen() {
         </Text>
         <Button 
           title="Borrar configuración y reiniciar" 
-          variant="outline" 
+          variant="destructive" 
           onPress={handleReset} 
-          className="w-full border-error"
+          className="w-full"
         />
       </View>
     </Screen>

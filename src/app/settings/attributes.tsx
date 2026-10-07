@@ -14,7 +14,7 @@ export default function AttributesScreen() {
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
           <SymbolView name="chevron.left" size={24} tintColor="rgb(var(--color-text))" />
         </TouchableOpacity>
-        <Text variant="h2" className="text-xl text-text font-bold ml-2">Características</Text>
+        <Text variant="h2" className="ml-2">Características</Text>
       </View>
 
       <ScrollView className="flex-1 px-4 pt-6">
@@ -22,7 +22,7 @@ export default function AttributesScreen() {
           Estas son las características configuradas para tus productos.
         </Text>
 
-        <View className="bg-surface rounded-2xl border border-border overflow-hidden">
+        <View className="bg-surface rounded-[24px] border border-border overflow-hidden mx-1 mb-8">
           {attributes.length > 0 ? (
             attributes.map((attr, idx) => (
               <View 
@@ -30,7 +30,7 @@ export default function AttributesScreen() {
                 className={`p-4 flex-row justify-between items-center ${idx < attributes.length - 1 ? 'border-b border-border/50' : ''}`}
               >
                 <View>
-                  <Text className="font-bold text-text mb-1">{attr.name}</Text>
+                  <Text variant="body" className="font-medium text-text mb-0.5">{attr.name}</Text>
                   <Text variant="caption" color="secondary">
                     Tipo: {attr.dataType === 'text' ? 'Texto' : attr.dataType === 'number' ? 'Número' : 'Opción Sí/No'}
                   </Text>

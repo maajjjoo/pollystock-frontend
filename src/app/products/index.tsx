@@ -33,7 +33,7 @@ export default function ProductsListScreen() {
       <View className="px-4 pt-4 pb-2">
         {/* Header */}
         <View className="flex-row items-center justify-between mb-6">
-          <Text variant="h2" className="text-2xl text-text font-bold">Productos</Text>
+          <Text variant="h2" >Productos</Text>
           <TouchableOpacity 
             onPress={() => router.push('/products/new' as any)} 
             className="flex-row items-center bg-primary rounded-full px-4 py-2 active:opacity-80 shadow-sm"

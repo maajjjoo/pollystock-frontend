@@ -112,7 +112,7 @@ export default function NewProductScreen() {
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
           <SymbolView name="chevron.left" size={24} tintColor="rgb(var(--color-text))" />
         </TouchableOpacity>
-        <Text variant="h2" className="text-xl text-text font-bold">Añadir producto</Text>
+        <Text variant="h2" >Añadir producto</Text>
         <View className="w-10" />
       </View>
 

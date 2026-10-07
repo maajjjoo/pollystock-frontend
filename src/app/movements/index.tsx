@@ -21,7 +21,7 @@ export default function MovementHistoryScreen() {
   return (
     <Screen className="bg-background">
       <View className="px-6 pt-6 pb-4 border-b border-border/50 bg-background/90">
-        <Text variant="h2" className="text-2xl text-text font-bold">Movimientos</Text>
+        <Text variant="h2" >Movimientos</Text>
       </View>
 
       <FlatList
@@ -52,32 +52,35 @@ export default function MovementHistoryScreen() {
           const isEntry = item.type === 'IN';
 
           return (
-            <Card>
-              <View className="flex-row justify-between items-start mb-2">
+            <View className="bg-surface py-4 px-4 border-b border-border/50">
+              <View className="flex-row justify-between items-center mb-1">
                 <View className="flex-1">
-                  <Text className="font-bold text-lg">
+                  <Text variant="body" className="font-medium text-text">
                     {product ? product.name : 'Producto Desconocido'}
                   </Text>
-                  <Text variant="caption" color="secondary">
-                    {new Date(item.date).toLocaleString()}
-                  </Text>
                 </View>
-                <View className="items-end">
-                  <Text className={`font-bold text-lg ${isEntry ? 'text-success' : 'text-error'}`}>
+                <View className="items-end pl-4">
+                  <Text variant="body" className={`font-semibold ${isEntry ? 'text-success' : 'text-error'}`}>
                     {isEntry ? '+' : '-'}{item.quantity}
-                  </Text>
-                  <Text variant="caption" className={isEntry ? 'text-success' : 'text-error'}>
-                    {isEntry ? 'ENTRADA' : 'SALIDA'}
                   </Text>
                 </View>
               </View>
+              
+              <View className="flex-row justify-between items-center">
+                <Text variant="caption" color="secondary">
+                  {new Date(item.date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                </Text>
+                <Text variant="caption" className={`text-[10px] font-semibold tracking-wider ${isEntry ? 'text-success' : 'text-error'}`}>
+                  {isEntry ? 'ENTRADA' : 'SALIDA'}
+                </Text>
+              </View>
 
               {item.note && (
-                <View className="mt-2 bg-surface p-2 rounded-md border border-border">
-                  <Text variant="caption" color="secondary">Nota: {item.note}</Text>
+                <View className="mt-2 bg-background p-2.5 rounded-lg border border-border/60">
+                  <Text variant="caption" color="secondary" className="italic">{item.note}</Text>
                 </View>
               )}
-            </Card>
+            </View>
           );
         }}
       />
