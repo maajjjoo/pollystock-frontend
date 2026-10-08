@@ -98,9 +98,9 @@ export default function NewProductScreen() {
       await saveProduct(newProduct);
       Alert.alert('Éxito', 'Producto agregado.');
       router.back();
-    } catch (error) {
+      } catch (error: any) {
       console.error(error);
-      Alert.alert('Error', 'No se pudo guardar el producto.');
+      Alert.alert('Error', error.message || 'No se pudo guardar el producto.');
     } finally {
       setLoading(false);
     }

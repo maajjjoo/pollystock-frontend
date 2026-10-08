@@ -104,8 +104,8 @@ export default function ProductDetailScreen() {
       await saveProduct(updatedProduct);
       Alert.alert('Éxito', 'Producto actualizado.');
       setIsEditing(false);
-    } catch {
-      Alert.alert('Error', 'No se pudo actualizar el producto.');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo actualizar el producto.');
     } finally {
       setLoading(false);
     }
@@ -119,8 +119,8 @@ export default function ProductDetailScreen() {
             await deleteProduct(product.id);
             Alert.alert('Éxito', 'Producto eliminado.');
             router.replace('/products' as any);
-          } catch {
-            Alert.alert('Error', 'No se pudo eliminar el producto.');
+          } catch (error: any) {
+            Alert.alert('Error', error.message || 'No se pudo eliminar el producto.');
           }
       }}
     ]);

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { Alert } from 'react-native';
 import { BusinessProfile, AttributeDefinition } from '@/core/database/schema';
 import { getBusinessProfile, getAttributeDefinitions } from '@/core/database/db';
 
@@ -21,8 +22,9 @@ export const useConfigStore = create<ConfigState>((set) => ({
       const profile = await getBusinessProfile();
       const attributes = await getAttributeDefinitions();
       set({ profile, attributes, isLoading: false });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load config', error);
+      Alert.alert('Error de conexión', error.message || 'No se pudo cargar la configuración.');
       set({ isLoading: false });
     }
   },
