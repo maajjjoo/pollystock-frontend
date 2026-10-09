@@ -43,7 +43,7 @@ export default function ThemeSettingsScreen() {
               <TouchableOpacity
                 key={theme.id}
                 onPress={() => handleSelectTheme(theme.id)}
-                className={`bg-surface border p-5 rounded-[24px] flex-row items-center justify-between shadow-sm ${isSelected ? 'border-primary' : 'border-border'}`}
+                className={`bg-surface border p-5 rounded-2xl flex-row items-center justify-between shadow-sm ${isSelected ? 'border-primary' : 'border-border'}`}
               >
                 <View>
                   <Text variant="h3" className="mb-1">{theme.name}</Text>

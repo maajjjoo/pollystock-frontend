@@ -82,8 +82,8 @@ export default function AssistantScreen() {
         className="flex-1"
       >
         {/* Header */}
-        <View className="px-6 pt-6 pb-4 border-b border-border/50 bg-background/90">
-          <Text variant="h2" >Asistente</Text>
+        <View className="px-6 pt-6 pb-4 border-b border-border bg-surface">
+          <Text variant="h2" >Análisis IA</Text>
         </View>
 
         <ScrollView 
@@ -157,7 +157,7 @@ export default function AssistantScreen() {
 
         {/* Input Area */}
         <View className="border-t border-border bg-surface px-4 py-3 pb-8">
-          <View className="flex-row items-center bg-background border border-border rounded-[24px] pl-4 pr-1 py-1">
+          <View className="flex-row items-center bg-background border border-border rounded-2xl pl-4 pr-1 py-1">
             <RNTextInput
               className="flex-1 text-text text-base leading-tight"
               placeholder="Escribe una pregunta..."

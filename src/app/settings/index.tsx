@@ -53,7 +53,7 @@ export default function SettingsScreen() {
         <View className="mt-6 mb-2 px-6">
           <Text variant="caption" color="secondary" className="uppercase tracking-wider font-bold">Mi negocio</Text>
         </View>
-        <View className="bg-surface border border-border rounded-[24px] px-4 overflow-hidden mx-4 mb-6">
+        <View className="bg-surface border border-border rounded-2xl px-4 overflow-hidden mx-4 mb-6">
           <SettingsRow 
             title="Nombre del negocio" 
             value={profile.name} 
@@ -71,7 +71,7 @@ export default function SettingsScreen() {
         <View className="mt-8 mb-2 px-6">
           <Text variant="caption" color="secondary" className="uppercase tracking-wider font-bold">Inventario</Text>
         </View>
-        <View className="bg-surface border border-border rounded-[24px] px-4 overflow-hidden mx-4 mb-6">
+        <View className="bg-surface border border-border rounded-2xl px-4 overflow-hidden mx-4 mb-6">
           <SettingsRow 
             title="Productos manejados" 
             value={profile.productType} 
@@ -121,7 +121,7 @@ export default function SettingsScreen() {
         <View className="mt-8 mb-2 px-6">
           <Text variant="caption" color="secondary" className="uppercase tracking-wider font-bold">Apariencia</Text>
         </View>
-        <View className="bg-surface border border-border rounded-[24px] px-4 overflow-hidden mx-4 mb-6">
+        <View className="bg-surface border border-border rounded-2xl px-4 overflow-hidden mx-4 mb-6">
           <SettingsRow 
             title="Tema" 
             value={
@@ -138,7 +138,7 @@ export default function SettingsScreen() {
         <View className="mt-8 mb-2 px-6">
           <Text variant="caption" color="secondary" className="uppercase tracking-wider font-bold">Preferencias</Text>
         </View>
-        <View className="bg-surface border border-border rounded-[24px] px-4 overflow-hidden mx-4 mb-8">
+        <View className="bg-surface border border-border rounded-2xl px-4 overflow-hidden mx-4 mb-8">
           <SettingsRow 
             title="Restablecer configuración" 
             value="" 
@@ -205,10 +205,10 @@ function SettingsRow({
       onPress={onPress}
       className={`flex-row justify-between items-center py-4 ${!isLast ? 'border-b border-border/50' : ''}`}
     >
-      <Text className="text-base text-text font-medium">{title}</Text>
-      <View className="flex-row items-center">
+      <Text className="text-base text-text font-medium flex-1 mr-4" numberOfLines={2}>{title}</Text>
+      <View className="flex-row items-center flex-shrink max-w-[50%]">
         {value ? (
-          <Text className={`text-base ${valueColor} mr-2`} numberOfLines={1}>{value}</Text>
+          <Text className={`text-base ${valueColor} mr-2 flex-shrink`} numberOfLines={1}>{value}</Text>
         ) : null}
         <SymbolView name="chevron.right" size={16} tintColor="rgb(var(--color-disabled))" />
       </View>

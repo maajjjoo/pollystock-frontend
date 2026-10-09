@@ -112,11 +112,11 @@ export default function StockEntryScreen() {
       </View>
 
       <ScrollView className="flex-1 px-4 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
-        <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
+        <View className="bg-surface rounded-2xl p-5 border border-border shadow-sm mb-6">
           <Text variant="caption" className={`font-medium mb-1 ml-1 ${errors.product ? 'text-error' : 'text-text-secondary'}`}>Producto *</Text>
           <TouchableOpacity 
             onPress={() => setModalVisible(true)}
-            className={`bg-background border ${errors.product ? 'border-error' : 'border-border'} rounded-[24px] py-4 px-4 mb-1 flex-row justify-between items-center`}
+            className={`bg-background border ${errors.product ? 'border-error' : 'border-border'} rounded-2xl py-4 px-4 mb-1 flex-row justify-between items-center`}
           >
             <Text className={selectedProduct ? 'text-text font-medium' : 'text-disabled'}>
               {selectedProduct ? `${selectedProduct.name} (Stock: ${selectedProduct.stockQuantity})` : 'Seleccionar producto...'}

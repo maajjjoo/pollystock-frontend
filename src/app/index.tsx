@@ -10,181 +10,234 @@ import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { useMovementStore } from '@/features/stock/hooks/use-movement-store';
 import { BottomNav } from '@/components/ui/BottomNav';
 
-export default function AppShell() {
-  const { profile, loadConfig, isLoading: configLoading } = useConfigStore();
-  const { products, loadProducts } = useProductStore();
-  const { movements, loadMovements } = useMovementStore();
-
-  useEffect(() => {
-    loadConfig();
-  }, [loadConfig]);
+export default function HomeScreen() {
+  const { profile, isLoading: configLoading } = useConfigStore();
+  const { products, loadProducts, isLoading: productsLoading } = useProductStore();
+  const { movements, loadMovements, isLoading: movementsLoading } = useMovementStore();
 
   useFocusEffect(
     useCallback(() => {
-      if (profile) {
+      if (profile && !configLoading) {
         loadProducts();
         loadMovements();
       }
-    }, [profile, loadProducts, loadMovements])
+    }, [profile, configLoading])
   );
 
   if (configLoading) {
     return (
-      <Screen className="items-center justify-center bg-background">
+      <Screen className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator size="large" color="rgb(var(--color-primary))" />
       </Screen>
     );
   }
 
-  if (!profile) {
+  if (!configLoading && !profile) {
     return <WelcomeIntro />;
   }
 
-  const recentMovements = movements.slice(0, 3);
-  const totalItems = products.reduce((sum, p) => sum + (p.stockQuantity || 0), 0);
+  const isLoading = productsLoading || movementsLoading;
+
+  // Calculate metrics
+  const totalProducts = products.length;
+  const lowStockThreshold = profile?.useMinStock ? profile.minStock || 5 : 0;
+  const outOfStockProducts = products.filter(p => p.stockQuantity === 0);
+  const lowStockProducts = products.filter(p => p.stockQuantity > 0 && p.stockQuantity <= lowStockThreshold);
+  
+  const recentMovements = [...movements].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3);
+  
+  // Format Date (Martes, 21 de mayo)
+  const today = new Date();
+  const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long' };
+  const formattedDate = today.toLocaleDateString('es-ES', dateOptions).replace(',', '');
+  const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
   return (
     <Screen className="bg-background">
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
         
-        {/* 1. HEADER */}
-        <View className="mb-6 flex-row justify-between items-center">
-          <View>
-            <Text variant="caption" color="secondary" className="uppercase tracking-wider font-semibold mb-0.5">
-              Hola, {profile.name}
-            </Text>
-            <Text variant="h2" >
-              Tu inventario
-            </Text>
+        {/* Header: Logo and Bell */}
+        <View className="px-6 pt-2 pb-6 flex-row justify-between items-center border-b border-border">
+          <View className="flex-row items-center">
+            <View className="w-10 h-10 bg-primary rounded-xl items-center justify-center mr-3 shadow-sm">
+              <SymbolView name="cube.box" size={24} tintColor="white" />
+            </View>
+            <Text className="text-xl font-bold text-text">PollyStock</Text>
           </View>
-        </View>
-
-        {/* 2. MAIN INVENTORY SUMMARY */}
-        <View className="mb-6 bg-primary rounded-[24px] p-6 shadow-sm">
-          <View className="flex-row justify-between items-start">
-            <View>
-              <Text className="text-white/80 font-medium mb-1">Total de {profile.productType || 'artículos'}</Text>
-              <Text className="text-white text-4xl font-semibold tracking-tight">
-                {products.length === 0 ? '0' : totalItems}
-              </Text>
-            </View>
-            <View className="w-12 h-12 bg-white/20 rounded-full items-center justify-center">
-              <SymbolView name="cube.box.fill" size={24} tintColor="white" />
-            </View>
-          </View>
-          
-          <View className="flex-row mt-6 pt-5 border-t border-white/20">
-            <View className="flex-1">
-              <Text className="text-white/80 text-sm mb-0.5">Productos únicos</Text>
-              <Text className="text-white font-semibold text-lg">{products.length}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* 3. IMPORTANT INFORMATION (Empty state since no low stock computed yet) */}
-        {products.length === 0 && (
-          <View className="mb-8 bg-surface border border-border rounded-[24px] p-5 flex-row items-center">
-            <View className="w-10 h-10 bg-primary/10 rounded-full items-center justify-center mr-4">
-              <SymbolView name="info.circle.fill" size={18} tintColor="rgb(var(--color-primary))" />
-            </View>
-            <View className="flex-1">
-              <Text className="font-medium text-text text-base">Comienza a explorar</Text>
-              <Text variant="caption" color="secondary" className="mt-0.5">
-                Agrega tu primer producto para ver información aquí.
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* 4. QUICK ACTIONS */}
-        <Text variant="h3" className="mb-4 text-text">Acciones rápidas</Text>
-        <View className="flex-row gap-3 mb-8">
           <TouchableOpacity 
-            className="flex-1 bg-surface rounded-2xl p-4 items-center justify-center border border-border shadow-sm active:bg-surface-variant"
-            onPress={() => router.push('/products/new' as any)}
+            onPress={() => router.push('/settings' as any)}
+            className="w-10 h-10 rounded-full border border-border items-center justify-center bg-surface relative"
           >
-            <View className="mb-3 w-12 h-12 bg-primary/10 rounded-full items-center justify-center">
-              <SymbolView name="plus" size={22} tintColor="rgb(var(--color-primary))" />
-            </View>
-            <Text className="font-semibold text-sm text-center">Añadir producto</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            className="flex-1 bg-surface rounded-2xl p-4 items-center justify-center border border-border shadow-sm active:bg-surface-variant"
-            onPress={() => router.push('/movements/entry' as any)}
-          >
-            <View className="mb-3 w-12 h-12 bg-success/10 rounded-full items-center justify-center">
-              <SymbolView name="arrow.down.to.line" size={22} tintColor="rgb(var(--color-success))" />
-            </View>
-            <Text className="font-semibold text-sm text-center">Registrar entrada</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            className="flex-1 bg-surface rounded-2xl p-4 items-center justify-center border border-border shadow-sm active:bg-surface-variant"
-            onPress={() => router.push('/movements/exit' as any)}
-          >
-            <View className="mb-3 w-12 h-12 bg-warning/10 rounded-full items-center justify-center">
-              <SymbolView name="arrow.up.to.line" size={22} tintColor="rgb(var(--color-warning))" />
-            </View>
-            <Text className="font-semibold text-sm text-center">Registrar salida</Text>
+            <SymbolView name="bell" size={20} tintColor="rgb(var(--color-text))" />
+            <View className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full" />
           </TouchableOpacity>
         </View>
 
-        {/* 5. RECENT ACTIVITY */}
-        <View className="flex-row justify-between items-end mb-4">
-          <Text variant="h3" className="text-text">Actividad reciente</Text>
-          {recentMovements.length > 0 && (
-            <TouchableOpacity onPress={() => router.push('/movements' as any)}>
-              <Text className="text-primary font-medium text-sm">Ver todo</Text>
+        {/* Greeting Section */}
+        <View className="px-6 pt-6 pb-6">
+          <Text className="text-3xl font-bold text-text mb-2">¡Hola, {profile?.name?.split(' ')[0] || 'Usuario'}!</Text>
+          <View className="flex-row justify-between items-center">
+            <Text className="text-text-secondary text-base">{profile?.name || 'Mi Negocio'}</Text>
+            <Text className="text-text-secondary text-base">{capitalizedDate}</Text>
+          </View>
+        </View>
+
+        {/* Resumen de Inventario */}
+        <View className="px-6 mb-8">
+          <Text className="text-lg font-bold text-text mb-4">Resumen de inventario</Text>
+          <View className="flex-row gap-4">
+            {/* Card 1: Productos */}
+            <View className="flex-1 bg-surface border border-border rounded-[20px] p-4 shadow-sm">
+              <View className="w-10 h-10 bg-primary/10 rounded-full items-center justify-center mb-3">
+                <SymbolView name="square.stack.3d.up" size={20} tintColor="rgb(var(--color-primary))" />
+              </View>
+              <Text className="text-3xl font-bold text-text mb-1">{totalProducts}</Text>
+              <Text className="text-sm text-text-secondary">Productos</Text>
+            </View>
+            
+            {/* Card 2: Stock bajo */}
+            <View className="flex-1 bg-surface border border-border rounded-[20px] p-4 shadow-sm">
+              <View className="w-10 h-10 bg-warning/10 rounded-full items-center justify-center mb-3">
+                <SymbolView name="exclamationmark.triangle" size={20} tintColor="rgb(var(--color-warning))" />
+              </View>
+              <Text className="text-3xl font-bold text-text mb-1">{lowStockProducts.length}</Text>
+              <Text className="text-sm text-text-secondary">Stock bajo</Text>
+            </View>
+            
+            {/* Card 3: Agotados */}
+            <View className="flex-1 bg-surface border border-border rounded-[20px] p-4 shadow-sm">
+              <View className="w-10 h-10 bg-error/10 rounded-full items-center justify-center mb-3">
+                <SymbolView name="cube.box" size={20} tintColor="rgb(var(--color-error))" />
+              </View>
+              <Text className="text-3xl font-bold text-text mb-1">{outOfStockProducts.length}</Text>
+              <Text className="text-sm text-text-secondary">Agotados</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Primary Action Button */}
+        <View className="px-6 mb-8">
+          <Button 
+            title="Agregar producto" 
+            icon="plus" 
+            variant="primary" 
+            onPress={() => router.push('/products/new' as any)} 
+          />
+        </View>
+
+        {/* Alertas de inventario */}
+        <View className="px-6 mb-8">
+          <View className="flex-row justify-between items-end mb-4">
+            <Text className="text-lg font-bold text-text">Alertas de inventario</Text>
+            <TouchableOpacity onPress={() => router.push('/products' as any)} className="flex-row items-center">
+              <Text className="text-primary font-medium text-sm mr-1">Ver inventario</Text>
+              <SymbolView name="chevron.right" size={12} tintColor="rgb(var(--color-primary))" />
             </TouchableOpacity>
+          </View>
+
+          {lowStockProducts.length > 0 ? (
+            <TouchableOpacity 
+              onPress={() => router.push(`/products/${lowStockProducts[0].id}` as any)}
+              className="bg-surface rounded-2xl border border-border shadow-sm flex-row items-center overflow-hidden"
+            >
+              <View className="w-1.5 h-full bg-warning absolute left-0 top-0 bottom-0 z-10" />
+              <View className="p-4 pl-6 flex-row items-center w-full">
+                <View className="w-12 h-12 bg-warning/10 rounded-xl items-center justify-center mr-4">
+                  <SymbolView name="cube.box" size={24} tintColor="rgb(var(--color-warning))" />
+                </View>
+                <View className="flex-1">
+                  <Text className="font-bold text-text text-base mb-0.5" numberOfLines={1}>{lowStockProducts[0].name}</Text>
+                  <Text className="text-text-secondary text-sm">Quedan {lowStockProducts[0].stockQuantity} {profile?.defaultUnit || 'unidades'}</Text>
+                </View>
+                <View className="bg-warning/20 px-3 py-1.5 rounded-full ml-2">
+                  <Text className="text-warning text-xs font-bold">Stock bajo</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <View className="bg-surface rounded-2xl border border-border p-5 items-center justify-center">
+              <Text className="text-text-secondary">No hay alertas de stock bajo</Text>
+            </View>
           )}
         </View>
-        
-        {recentMovements.length === 0 ? (
-          <View className="bg-surface rounded-[24px] p-8 items-center border border-border">
-            <View className="w-16 h-16 bg-surface-variant rounded-full items-center justify-center mb-4">
-              <SymbolView name="doc.text.magnifyingglass" size={24} tintColor="rgb(var(--color-disabled))" />
+
+        {/* Análisis inteligente */}
+        <View className="px-6 mb-8">
+          <Text className="text-lg font-bold text-text mb-4">Análisis inteligente</Text>
+          <View className="bg-primary/5 rounded-[20px] p-5">
+            <View className="flex-row items-start mb-4">
+              <View className="w-12 h-12 bg-surface rounded-xl items-center justify-center mr-4 shadow-sm border border-border/50">
+                <SymbolView name="sparkles" size={24} tintColor="rgb(var(--color-primary))" />
+              </View>
+              <View className="flex-1 pt-1">
+                <Text className="font-bold text-text text-base mb-2">Una oportunidad para reponer</Text>
+                <Text className="text-text-secondary text-sm leading-relaxed mb-1">
+                  {lowStockProducts.length > 0 
+                    ? `${lowStockProducts.length} productos se venden con frecuencia y tienen poco stock. Revisa las existencias antes de tu próxima compra.`
+                    : 'Tu inventario se encuentra en un estado óptimo. Sigue registrando tus ventas y entradas para obtener más recomendaciones.'}
+                </Text>
+              </View>
             </View>
-            <Text className="font-medium text-text mb-1">Aún no hay actividad</Text>
-            <Text variant="caption" color="secondary" className="text-center">
-              Tus entradas y salidas recientes aparecerán aquí.
-            </Text>
+            <View className="h-px bg-border/50 my-3" />
+            <View className="flex-row justify-between items-center">
+              <Text className="text-text-secondary text-xs">Basado en movimientos recientes</Text>
+              <TouchableOpacity onPress={() => router.push('/assistant' as any)} className="flex-row items-center">
+                <Text className="text-primary font-medium text-sm mr-1">Ver análisis</Text>
+                <SymbolView name="chevron.right" size={12} tintColor="rgb(var(--color-primary))" />
+              </TouchableOpacity>
+            </View>
           </View>
-        ) : (
-          <View className="bg-surface rounded-[24px] border border-border overflow-hidden">
-            {recentMovements.map((movement, idx) => {
-              const product = products.find(p => p.id === movement.productId);
-              const isEntry = movement.type === 'IN';
-              
-              return (
-                <View 
-                  key={movement.id} 
-                  className={`p-4 flex-row items-center justify-between ${idx !== recentMovements.length - 1 ? 'border-b border-border' : ''}`}
-                >
-                  <View className="flex-row items-center flex-1 pr-4">
-                    <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${isEntry ? 'bg-success/10' : 'bg-warning/10'}`}>
-                      <SymbolView name={isEntry ? "arrow.down" : "arrow.up"} size={16} tintColor={isEntry ? "rgb(var(--color-success))" : "rgb(var(--color-warning))"} />
+        </View>
+
+        {/* Actividad reciente */}
+        <View className="px-6 mb-4">
+          <View className="flex-row justify-between items-end mb-4">
+            <Text className="text-lg font-bold text-text">Actividad reciente</Text>
+            {recentMovements.length > 0 && (
+              <TouchableOpacity onPress={() => router.push('/movements' as any)} className="flex-row items-center">
+                <Text className="text-primary font-medium text-sm mr-1">Ver todo</Text>
+                <SymbolView name="chevron.right" size={12} tintColor="rgb(var(--color-primary))" />
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          {recentMovements.length === 0 ? (
+            <View className="bg-surface rounded-2xl border border-border p-6 items-center">
+              <Text className="text-text-secondary">No hay actividad reciente.</Text>
+            </View>
+          ) : (
+            <View className="bg-surface rounded-2xl border border-border overflow-hidden">
+              {recentMovements.map((movement, idx) => {
+                const product = products.find(p => p.id === movement.productId);
+                const isEntry = movement.type === 'IN';
+                
+                return (
+                  <View 
+                    key={movement.id} 
+                    className={`p-4 flex-row items-center justify-between ${idx !== recentMovements.length - 1 ? 'border-b border-border/50' : ''}`}
+                  >
+                    <View className="flex-row items-center flex-1 pr-4">
+                      <View className="flex-1">
+                        <Text className="font-bold text-text text-base mb-0.5" numberOfLines={1}>
+                          {product ? product.name : 'Producto eliminado'}
+                        </Text>
+                        <Text className="text-text-secondary text-xs">
+                          {isEntry ? 'Entrada' : 'Salida'} • {new Date(movement.date).toLocaleDateString()}
+                        </Text>
+                      </View>
                     </View>
-                    <View className="flex-1">
-                      <Text className="font-medium text-text mb-0.5" numberOfLines={1}>
-                        {product ? product.name : 'Producto eliminado'}
-                      </Text>
-                      <Text variant="caption" color="secondary">
-                        {isEntry ? 'Entrada' : 'Salida'} · {new Date(movement.date).toLocaleDateString()}
-                      </Text>
-                    </View>
+                    <Text className={`font-bold text-base ${isEntry ? 'text-success' : 'text-text'}`}>
+                      {isEntry ? '+' : '-'}{movement.quantity}
+                    </Text>
                   </View>
-                  <Text className={`font-semibold text-lg ${isEntry ? 'text-success' : 'text-text'}`}>
-                    {isEntry ? '+' : '-'}{movement.quantity}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        )}
+                );
+              })}
+            </View>
+          )}
+        </View>
       </ScrollView>
 
-      {/* 6. BOTTOM NAVIGATION */}
+      {/* BOTTOM NAVIGATION */}
       <BottomNav />
     </Screen>
   );

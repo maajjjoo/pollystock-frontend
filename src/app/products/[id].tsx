@@ -7,6 +7,7 @@ import { Text } from '@/components/ui/Text';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
+import { Select } from '@/components/ui/Select';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { Product } from '@/core/database/schema';
@@ -152,7 +153,7 @@ export default function ProductDetailScreen() {
             </View>
           </View>
 
-          <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
+          <View className="bg-surface rounded-2xl p-5 border border-border shadow-sm mb-6">
             <Text variant="h3" className="mb-4">Detalles Básicos</Text>
             <View className="flex-row justify-between border-b border-border/50 py-3">
               <Text color="secondary">Precio Base</Text>
@@ -177,7 +178,7 @@ export default function ProductDetailScreen() {
           </View>
 
           {attributes.length > 0 && (
-            <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
+            <View className="bg-surface rounded-2xl p-5 border border-border shadow-sm mb-6">
               <Text variant="h3" className="mb-4">Características ({profile.productType})</Text>
               {attributes.map(attr => (
                 <View key={attr.id} className="flex-row justify-between border-b border-border/50 py-3 last:border-0">
@@ -188,7 +189,7 @@ export default function ProductDetailScreen() {
             </View>
           )}
 
-          <Button title="Eliminar Producto" variant="outline" className="border-error text-error" onPress={handleDelete} />
+          <Button title="Eliminar Producto" variant="destructive-outline" onPress={handleDelete} />
         </ScrollView>
       </Screen>
     );
@@ -240,7 +241,7 @@ export default function ProductDetailScreen() {
         </View>
 
         {/* Form Fields */}
-        <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
+        <View className="bg-surface rounded-2xl p-5 border border-border shadow-sm mb-6">
           <Text variant="h3" className="mb-4">Información Básica</Text>
           <TextInput 
             label="Nombre del Producto *" 
@@ -292,20 +293,35 @@ export default function ProductDetailScreen() {
         </View>
 
         {attributes.length > 0 && (
-          <View className="bg-surface rounded-[24px] p-5 border border-border shadow-sm mb-6">
+          <View className="bg-surface rounded-2xl p-5 border border-border shadow-sm mb-6">
             <Text variant="h3" className="mb-4">Características</Text>
             {attributes.map(attr => {
               if (attr.dataType === 'boolean') {
-                return (
-                  <Switch
-                    key={attr.id}
-                    label={`${attr.name} ${attr.isRequired ? '*' : ''}`}
-                    value={dynamicValues[attr.id] === 'true' || dynamicValues[attr.id] === true}
-                    onValueChange={(val) => handleDynamicChange(attr.id, val.toString())}
-                  />
-                );
-              }
-              return (
+  return (
+    <Switch
+      key={attr.id}
+      label={attr.name + (attr.isRequired ? ' *' : '')}
+      value={dynamicValues[attr.id] === 'true' || dynamicValues[attr.id] === true}
+      onValueChange={(val) => handleDynamicChange(attr.id, val.toString())}
+    />
+  );
+}
+
+if (attr.dataType === 'list' && attr.options) {
+  return (
+    <View key={attr.id} className="mb-2">
+      <Select
+        label={attr.name + (attr.isRequired ? ' *' : '')}
+        selectedValue={dynamicValues[attr.id] || ''}
+        onSelect={(val) => handleDynamicChange(attr.id, val)}
+        options={attr.options.map(opt => ({ label: opt, value: opt }))}
+        placeholder={'Seleccionar ' + attr.name + '...'}
+      />
+      {errors[attr.id] ? <Text variant="caption" className="text-error mt-1 ml-1">{errors[attr.id]}</Text> : null}
+    </View>
+  );
+}
+return (
                 <TextInput 
                   key={attr.id}
                   label={`${attr.name} ${attr.isRequired ? '*' : ''}`}

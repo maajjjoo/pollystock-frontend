@@ -22,7 +22,7 @@ export default function AttributesScreen() {
           Estas son las características configuradas para tus productos.
         </Text>
 
-        <View className="bg-surface rounded-[24px] border border-border overflow-hidden mx-1 mb-8">
+        <View className="bg-surface rounded-2xl border border-border overflow-hidden mx-1 mb-8">
           {attributes.length > 0 ? (
             attributes.map((attr, idx) => (
               <View 

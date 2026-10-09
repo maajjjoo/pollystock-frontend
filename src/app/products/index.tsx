@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { Button } from '@/components/ui/Button';
 import { TextInput } from '@/components/ui/TextInput';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
@@ -117,17 +118,18 @@ export default function ProductsListScreen() {
               </View>
 
               {/* Product Info */}
-              <View className="flex-1 justify-center">
+              <View className="flex-1 justify-center pr-2">
                 <Text className="font-semibold text-text text-base mb-0.5" numberOfLines={1}>{item.name}</Text>
+                <Text className="font-bold text-primary mb-1">$\{Number(item.basePrice).toFixed(2)}</Text>
                 
-                <View className="flex-row items-center">
-                  <Text variant="caption" color="secondary" className="font-medium">
+                <View className="flex-row items-center flex-wrap">
+                  <Text variant="caption" color="secondary" className="font-medium flex-shrink" numberOfLines={1}>
                     {item.stockQuantity} {profile?.defaultUnit}
                   </Text>
                   {item.categoryId && (
                     <>
                       <Text variant="caption" color="secondary" className="mx-1.5">•</Text>
-                      <Text variant="caption" color="secondary">{item.categoryId}</Text>
+                      <Text variant="caption" color="secondary" numberOfLines={1} className="flex-shrink">{item.categoryId}</Text>
                     </>
                   )}
                 </View>

@@ -14,7 +14,7 @@ import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 import { ValidationRules } from '@/utils/validation';
 
 export default function SetupScreen() {
-  const { setProfile, setAttributes } = useConfigStore();
+  const { setProfile, setAttributes, loadConfig } = useConfigStore();
   const [loading, setLoading] = useState(false);
 
   // General Settings
@@ -88,8 +88,7 @@ export default function SetupScreen() {
       await saveBusinessProfile(profile);
       await saveAttributeDefinitions(attributes);
 
-      setProfile(profile);
-      setAttributes(attributes);
+      await loadConfig();
 
       router.replace('/');
     } catch (error) {
