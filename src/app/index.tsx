@@ -66,10 +66,10 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity 
             onPress={() => router.push('/settings' as any)}
-            className="w-10 h-10 rounded-full border border-border items-center justify-center bg-surface relative"
+            className="w-10 h-10 rounded-full border border-border items-center justify-center bg-surface"
+            accessibilityLabel="Configuración del negocio"
           >
-            <SymbolView name="bell" size={20} tintColor="rgb(var(--color-text))" />
-            <View className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full" />
+            <SymbolView name="gearshape" size={20} tintColor="rgb(var(--color-text))" />
           </TouchableOpacity>
         </View>
 

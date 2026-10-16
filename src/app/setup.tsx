@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { ScrollView, View, Alert } from 'react-native';
+import { useState, useEffect } from 'react';
+import { ScrollView, View, Alert, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { Screen } from '@/components/ui/Screen';
 import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
@@ -9,31 +10,68 @@ import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
 import { Select } from '@/components/ui/Select';
 import { BusinessProfile, AttributeDefinition, DataType } from '@/core/database/schema';
-import { saveBusinessProfile, saveAttributeDefinitions } from '@/core/database/db';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 import { ValidationRules } from '@/utils/validation';
 
+const PRESET_BUSINESS_TYPES = [
+  'Ropa y Accesorios',
+  'Alimentos y Bebidas',
+  'Tecnología',
+  'Hogar',
+  'Salud y Belleza',
+  'Ferretería',
+  'Papelería',
+];
+
 export default function SetupScreen() {
-  const { setProfile, setAttributes, loadConfig } = useConfigStore();
+  const { profile, attributes: storedAttributes, saveProfile, saveAttributes, loadConfig } = useConfigStore();
   const [loading, setLoading] = useState(false);
 
   // General Settings
-  const [name, setName] = useState('');
-  const [businessType, setBusinessType] = useState('');
-  const [productType, setProductType] = useState('');
-  const [defaultUnit, setDefaultUnit] = useState('Unidad');
+  const isInitialCustomType = profile?.businessType ? !PRESET_BUSINESS_TYPES.includes(profile.businessType) : false;
+  const [name, setName] = useState(profile?.name || '');
+  const [businessType, setBusinessType] = useState(
+    profile?.businessType ? (isInitialCustomType ? 'Otro' : profile.businessType) : ''
+  );
+  const [customBusinessType, setCustomBusinessType] = useState(
+    isInitialCustomType ? (profile?.businessType || '') : ''
+  );
+  const [productType, setProductType] = useState(profile?.productType || '');
+  const [defaultUnit, setDefaultUnit] = useState(profile?.defaultUnit || 'Unidad');
 
   // Modules
-  const [useCategories, setUseCategories] = useState(true);
-  const [useProductCodes, setUseProductCodes] = useState(true);
-  const [useMinStock, setUseMinStock] = useState(false);
-  const [useExpirationDates, setUseExpirationDates] = useState(false);
+  const [useCategories, setUseCategories] = useState(profile?.useCategories ?? true);
+  const [useProductCodes, setUseProductCodes] = useState(profile?.useProductCodes ?? true);
+  const [useMinStock, setUseMinStock] = useState(profile?.useMinStock ?? false);
+  const [minStock, setMinStock] = useState(profile?.minStock?.toString() || '5');
+  const [useExpirationDates, setUseExpirationDates] = useState(profile?.useExpirationDates ?? false);
 
   // Dynamic Attributes
-  const [attributes, setLocalAttributes] = useState<AttributeDefinition[]>([]);
+  const [attributes, setLocalAttributes] = useState<AttributeDefinition[]>(storedAttributes || []);
   const [newAttrName, setNewAttrName] = useState('');
   const [newAttrType, setNewAttrType] = useState<DataType>('text');
   const [newAttrRequired, setNewAttrRequired] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      if (!name) setName(profile.name || '');
+      const isCustom = profile.businessType ? !PRESET_BUSINESS_TYPES.includes(profile.businessType) : false;
+      if (!businessType) {
+        setBusinessType(isCustom ? 'Otro' : (profile.businessType || ''));
+        if (isCustom) setCustomBusinessType(profile.businessType || '');
+      }
+      if (!productType) setProductType(profile.productType || '');
+      if (!defaultUnit) setDefaultUnit(profile.defaultUnit || 'Unidad');
+      setUseCategories(profile.useCategories ?? true);
+      setUseProductCodes(profile.useProductCodes ?? true);
+      setUseMinStock(profile.useMinStock ?? false);
+      if (profile.minStock) setMinStock(profile.minStock.toString());
+      setUseExpirationDates(profile.useExpirationDates ?? false);
+    }
+    if (storedAttributes && storedAttributes.length > 0 && attributes.length === 0) {
+      setLocalAttributes(storedAttributes);
+    }
+  }, [profile, storedAttributes]);
 
   const handleAddAttribute = () => {
     if (!newAttrName.trim()) {
@@ -66,28 +104,40 @@ export default function SetupScreen() {
       Alert.alert('Error', 'Ingresa un nombre.');
       return;
     }
-    if (!businessType.trim() || !productType.trim()) {
+    const effectiveBusinessType = businessType === 'Otro' && customBusinessType.trim()
+      ? customBusinessType.trim()
+      : businessType.trim();
+
+    if (!effectiveBusinessType || !productType.trim()) {
       Alert.alert('Error', 'Completa los campos sobre tu negocio.');
+      return;
+    }
+
+    if (useMinStock && (!minStock || isNaN(Number(minStock)) || Number(minStock) <= 0)) {
+      Alert.alert('Error', 'Ingresa una cantidad mínima de alerta válida.');
       return;
     }
 
     setLoading(true);
     try {
-      const profile: BusinessProfile = {
-        id: '1',
+      const profileData: BusinessProfile = {
+        id: profile?.id || '1',
         name: name.trim(),
-        businessType: businessType.trim(),
+        businessType: effectiveBusinessType,
         productType: productType.trim(),
         defaultUnit: defaultUnit.trim(),
         useCategories,
         useProductCodes,
         useMinStock,
+        minStock: useMinStock ? Number(minStock) || 5 : undefined,
         useExpirationDates,
+        theme: profile?.theme || 'theme-natural',
       };
 
-      await saveBusinessProfile(profile);
-      await saveAttributeDefinitions(attributes);
-
+      await saveProfile(profileData);
+      if (attributes.length > 0) {
+        await saveAttributes(attributes);
+      }
       await loadConfig();
 
       router.replace('/');
@@ -111,8 +161,16 @@ export default function SetupScreen() {
       Alert.alert('Error', 'Selecciona el tipo de negocio.');
       return;
     }
+    if (step === 0 && businessType === 'Otro' && !customBusinessType.trim()) {
+      Alert.alert('Error', 'Escribe tu tipo de negocio.');
+      return;
+    }
     if (step === 1 && !productType.trim()) {
       Alert.alert('Error', 'Escribe qué productos vendes.');
+      return;
+    }
+    if (step === 3 && useMinStock && (!minStock || isNaN(Number(minStock)) || Number(minStock) <= 0)) {
+      Alert.alert('Error', 'Ingresa una cantidad mínima de alerta válida.');
       return;
     }
     setStep(s => Math.min(s + 1, totalSteps - 1));
@@ -125,6 +183,16 @@ export default function SetupScreen() {
   return (
     <Screen>
       <View className="px-4 pt-4 pb-2">
+        {profile && (
+          <View className="flex-row items-center justify-between mb-3">
+            <TouchableOpacity onPress={() => router.back()} className="flex-row items-center py-1">
+              <SymbolView name="chevron.left" size={18} tintColor="#64748b" />
+              <Text variant="caption" color="secondary" className="ml-1 font-medium">Volver a ajustes</Text>
+            </TouchableOpacity>
+            <Text variant="caption" color="secondary" className="font-semibold">Editar perfil</Text>
+            <View style={{ width: 40 }} />
+          </View>
+        )}
         {/* Progress indicator */}
         <View className="flex-row items-center justify-between mb-2">
           {Array.from({ length: totalSteps }).map((_, idx) => (
@@ -164,7 +232,7 @@ export default function SetupScreen() {
                 ]} 
               />
               {businessType === 'Otro' && (
-                <TextInput label="Escribe tu tipo de negocio" value={productType} onChangeText={setProductType} placeholder="Ej. Artesanías" maxLength={ValidationRules.BUSINESS_TYPE_MAX} />
+                <TextInput label="Escribe tu tipo de negocio" value={customBusinessType} onChangeText={setCustomBusinessType} placeholder="Ej. Artesanías" maxLength={ValidationRules.BUSINESS_TYPE_MAX} />
               )}
             </Card>
           </View>
@@ -251,6 +319,18 @@ export default function SetupScreen() {
               <Switch label="¿Quieres usar categorías?" value={useCategories} onValueChange={setUseCategories} />
               <Switch label="¿Quieres usar códigos de producto?" value={useProductCodes} onValueChange={setUseProductCodes} />
               <Switch label="¿Quieres alertas de stock mínimo?" value={useMinStock} onValueChange={setUseMinStock} />
+              {useMinStock && (
+                <View className="mt-2 mb-4">
+                  <TextInput
+                    label="Nivel de alerta (cantidad mínima)"
+                    value={minStock}
+                    onChangeText={t => setMinStock(t.replace(/[^0-9]/g, ''))}
+                    placeholder="5"
+                    keyboardType="numeric"
+                    maxLength={ValidationRules.MIN_STOCK_MAX}
+                  />
+                </View>
+              )}
               <Switch label="¿Tus productos tienen fecha de vencimiento?" value={useExpirationDates} onValueChange={setUseExpirationDates} />
             </Card>
           </View>

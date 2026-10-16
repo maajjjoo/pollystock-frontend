@@ -13,12 +13,17 @@ const THEMES = [
 ];
 
 export default function ThemeSettingsScreen() {
-  const { profile, setProfile } = useConfigStore();
+  const { profile, saveProfile } = useConfigStore();
 
   if (!profile) return null;
 
-  const handleSelectTheme = (themeId: string) => {
-    setProfile({ ...profile, theme: themeId });
+  const handleSelectTheme = async (themeId: string) => {
+    if (!profile) return;
+    try {
+      await saveProfile({ ...profile, theme: themeId });
+    } catch (error: any) {
+      console.error('Failed to save theme', error);
+    }
   };
 
   return (

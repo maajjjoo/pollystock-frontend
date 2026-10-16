@@ -11,6 +11,7 @@ export function BottomNav() {
     { name: 'Inventario', icon: 'cube.box', activeIcon: 'cube.box.fill', route: '/products' },
     { name: 'Movimientos', icon: 'arrow.up', activeIcon: 'arrow.up', route: '/movements' },
     { name: 'Análisis IA', icon: 'sparkles', activeIcon: 'sparkles', route: '/assistant' },
+    { name: 'Configuración', icon: 'gearshape', activeIcon: 'gearshape.fill', route: '/settings' },
   ];
 
   return (

@@ -13,7 +13,7 @@ import { BottomNav } from '@/components/ui/BottomNav';
 import { BusinessProfile } from '@/core/database/schema';
 
 export default function SettingsScreen() {
-  const { profile, setProfile } = useConfigStore();
+  const { profile, saveProfile, isSaving } = useConfigStore();
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editField, setEditField] = useState<{ key: keyof BusinessProfile, label: string, maxLen: number, isNumeric?: boolean } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -26,18 +26,47 @@ export default function SettingsScreen() {
     setEditModalVisible(true);
   };
 
-  const handleSaveEdit = () => {
-    if (editField) {
+  const handleSaveEdit = async () => {
+    if (editField && profile) {
       if (!editValue.trim() && !editField.isNumeric) {
         Alert.alert('Error', 'El valor no puede estar vacío.');
         return;
       }
       
       const val = editField.isNumeric ? Number(editValue) || 0 : editValue.trim();
-      setProfile({ ...profile, [editField.key]: val } as any);
-      Alert.alert('Éxito', 'Configuración actualizada.');
+      const updatedProfile: BusinessProfile = {
+        ...profile,
+        [editField.key]: val,
+      };
+
+      try {
+        await saveProfile(updatedProfile);
+        Alert.alert('Éxito', 'Configuración actualizada.');
+        setEditModalVisible(false);
+      } catch (error: any) {
+        console.error('Error saving profile field:', error);
+        Alert.alert('Error', error?.message || 'No se pudo guardar la configuración.');
+      }
     }
-    setEditModalVisible(false);
+  };
+
+  const handleToggleSetting = async (key: keyof BusinessProfile) => {
+    if (!profile) return;
+    const nextVal = !profile[key];
+    const updatedProfile: BusinessProfile = {
+      ...profile,
+      [key]: nextVal,
+      ...(key === 'useMinStock' && nextVal && (!profile.minStock || Number(profile.minStock) <= 0)
+        ? { minStock: 5 }
+        : {}),
+    };
+
+    try {
+      await saveProfile(updatedProfile);
+    } catch (error: any) {
+      console.error(`Error toggling ${key}:`, error);
+      Alert.alert('Error', error?.message || 'No se pudo actualizar la configuración.');
+    }
   };
 
   return (
@@ -90,29 +119,29 @@ export default function SettingsScreen() {
           <SettingsRow 
             title="Categorías" 
             value={profile.useCategories ? 'Activadas' : 'Desactivadas'} 
-            onPress={() => setProfile({ ...profile, useCategories: !profile.useCategories })} 
+            onPress={() => handleToggleSetting('useCategories')} 
           />
           <SettingsRow 
             title="Código de producto (SKU)" 
             value={profile.useProductCodes ? 'Activado' : 'Desactivado'} 
-            onPress={() => setProfile({ ...profile, useProductCodes: !profile.useProductCodes })} 
+            onPress={() => handleToggleSetting('useProductCodes')} 
           />
           <SettingsRow 
             title="Alerta de stock bajo" 
             value={profile.useMinStock ? 'Activada' : 'Desactivada'} 
-            onPress={() => setProfile({ ...profile, useMinStock: !profile.useMinStock })} 
+            onPress={() => handleToggleSetting('useMinStock')} 
           />
           {profile.useMinStock && (
             <SettingsRow 
               title="Nivel de alerta" 
-              value={`${profile.minStock || 5} ${profile.defaultUnit || 'uds'}`}
+              value={`${profile.minStock || 5} ${profile.defaultUnit || 'uds'}`} 
               onPress={() => openEdit('minStock', 'Nivel de alerta (cantidad)', ValidationRules.MIN_STOCK_MAX, true)} 
             />
           )}
           <SettingsRow 
             title="Fecha de vencimiento" 
             value={profile.useExpirationDates ? 'Activada' : 'Desactivada'} 
-            onPress={() => setProfile({ ...profile, useExpirationDates: !profile.useExpirationDates })} 
+            onPress={() => handleToggleSetting('useExpirationDates')} 
             isLast
           />
         </View>
@@ -139,6 +168,11 @@ export default function SettingsScreen() {
           <Text variant="caption" color="secondary" className="uppercase tracking-wider font-bold">Preferencias</Text>
         </View>
         <View className="bg-surface border border-border rounded-2xl px-4 overflow-hidden mx-4 mb-8">
+          <SettingsRow 
+            title="Asistente de configuración inicial" 
+            value="Abrir" 
+            onPress={() => router.push('/setup' as any)} 
+          />
           <SettingsRow 
             title="Restablecer configuración" 
             value="" 
@@ -176,7 +210,7 @@ export default function SettingsScreen() {
             />
             <View className="flex-row gap-3 mt-4">
               <Button title="Cancelar" variant="outline" className="flex-1" onPress={() => setEditModalVisible(false)} />
-              <Button title="Guardar" variant="primary" className="flex-1" onPress={handleSaveEdit} />
+              <Button title="Guardar" variant="primary" loading={isSaving} className="flex-1" onPress={handleSaveEdit} />
             </View>
           </View>
         </KeyboardAvoidingView>
