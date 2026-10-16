@@ -91,9 +91,9 @@ export default function SetupScreen() {
       await loadConfig();
 
       router.replace('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      Alert.alert('Error', 'No se pudo guardar la configuración');
+      Alert.alert('Error', error?.message || 'No se pudo guardar la configuración');
     } finally {
       setLoading(false);
     }
