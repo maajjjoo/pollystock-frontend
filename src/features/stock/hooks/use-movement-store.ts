@@ -25,10 +25,7 @@ export const useMovementStore = create<MovementState>((set, get) => ({
   registerMovement: async (movement) => {
     try {
       await dbSaveMovement(movement);
-      // We don't blindly reload all here unless we need to, but it's simpler to just prepend
-      set((state) => ({
-        movements: [movement, ...state.movements]
-      }));
+      await get().loadMovements();
     } catch (error) {
       console.error('Failed to register movement', error);
       throw error;

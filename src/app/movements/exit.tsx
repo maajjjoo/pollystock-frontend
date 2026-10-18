@@ -8,12 +8,11 @@ import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { useMovementStore } from '@/features/stock/hooks/use-movement-store';
-import { Product, StockMovement } from '@/core/database/schema';
 import { ValidationRules, sanitizeNumericInput } from '@/utils/validation';
 
 export default function StockExitScreen() {
   const { productId: initialProductId } = useLocalSearchParams<{ productId?: string }>();
-  const { products, saveProduct, loadProducts } = useProductStore();
+  const { products, loadProducts } = useProductStore();
   const { registerMovement } = useMovementStore();
 
   const [productId, setProductId] = useState<string>(initialProductId || '');
@@ -64,29 +63,22 @@ export default function StockExitScreen() {
     setLoading(true);
     setErrors({});
     try {
-      // 1. Update product stock
-      const updatedProduct: Product = {
-        ...selectedProduct!,
-        stockQuantity: selectedProduct!.stockQuantity - qty,
-      };
-      await saveProduct(updatedProduct);
-
-      // 2. Register movement
-      const movement: StockMovement = {
-        id: Date.now().toString(),
+      await registerMovement({
+        id: '',
         productId: selectedProduct!.id,
         type: 'OUT',
         quantity: qty,
         date: new Date().toISOString(),
         note: note.trim() || undefined,
-      };
-      await registerMovement(movement);
+      });
+
+      await loadProducts();
 
       Alert.alert('Éxito', 'Salida registrada.');
       router.back();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      Alert.alert('Error', 'No se pudo guardar la salida. Inténtalo de nuevo.');
+      Alert.alert('Error', error?.message || 'No se pudo guardar la salida. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }

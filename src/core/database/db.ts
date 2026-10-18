@@ -120,14 +120,47 @@ export async function deleteProduct(id: string) {
   }
 }
 
-// MOVEMENTS (Mock remaining)
-export async function saveMovement(movement: StockMovement) {
-  mockMovements.unshift({ ...movement });
+// MOVEMENTS (Integrated with Backend)
+export async function saveMovement(movement: StockMovement): Promise<void> {
+  const backendType = (movement.type === 'IN' || (movement.type as any) === 'ENTRY') ? 'ENTRY' : 'EXIT';
+  try {
+    await apiClient.post('/movements', {
+      productId: movement.productId,
+      type: backendType,
+      quantity: movement.quantity,
+      note: movement.note || null,
+    });
+  } catch (error: any) {
+    console.error('Failed to save movement to backend:', error);
+    // Keep local mock updated in case of network issues
+    mockMovements.unshift({ ...movement });
+    throw error;
+  }
 }
 
 export async function getMovements(productId?: string): Promise<StockMovement[]> {
-  if (productId) {
-    return mockMovements.filter(m => m.productId === productId);
+  try {
+    const url = productId ? `/movements?productId=${encodeURIComponent(productId)}` : '/movements';
+    const backendMovements = await apiClient.get<any[]>(url);
+    if (Array.isArray(backendMovements)) {
+      return backendMovements.map(m => ({
+        id: m.id,
+        productId: m.productId,
+        type: (m.type === 'ENTRY' || m.type === 'IN') ? 'IN' : 'OUT',
+        quantity: Number(m.quantity),
+        date: typeof m.date === 'string' ? m.date : new Date(m.date).toISOString(),
+        note: m.note || undefined,
+      }));
+    }
+    return [];
+  } catch (error: any) {
+    if (error instanceof ApiError && (error.code === 'NO_BUSINESS' || error.code === 'NOT_FOUND')) {
+      return [];
+    }
+    console.warn('Could not load movements from backend, falling back to local memory:', error?.message);
+    if (productId) {
+      return mockMovements.filter(m => m.productId === productId);
+    }
+    return [...mockMovements];
   }
-  return [...mockMovements];
 }

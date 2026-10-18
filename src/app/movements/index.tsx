@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { View, FlatList, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Screen } from '@/components/ui/Screen';
-import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
 import { useMovementStore } from '@/features/stock/hooks/use-movement-store';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
@@ -20,8 +19,26 @@ export default function MovementHistoryScreen() {
 
   return (
     <Screen className="bg-background">
-      <View className="px-6 pt-6 pb-4 border-b border-border/50 bg-background/90">
-        <Text variant="h2" >Movimientos</Text>
+      <View className="px-6 pt-6 pb-4 border-b border-border/50 bg-background/90 flex-row items-center justify-between">
+        <Text variant="h2">Movimientos</Text>
+        <View className="flex-row items-center gap-2">
+          <TouchableOpacity 
+            onPress={() => router.push('/movements/entry' as any)} 
+            activeOpacity={0.8}
+            className="flex-row items-center gap-1.5 bg-success/15 border border-success/30 px-3.5 py-2 rounded-xl active:opacity-70"
+          >
+            <SymbolView name="plus" size={14} tintColor="rgb(var(--color-success))" />
+            <Text className="text-success font-semibold text-xs">Entrada</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => router.push('/movements/exit' as any)} 
+            activeOpacity={0.8}
+            className="flex-row items-center gap-1.5 bg-error/15 border border-error/30 px-3.5 py-2 rounded-xl active:opacity-70"
+          >
+            <SymbolView name="minus" size={14} tintColor="rgb(var(--color-error))" />
+            <Text className="text-error font-semibold text-xs">Salida</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -39,17 +56,29 @@ export default function MovementHistoryScreen() {
             <Text variant="caption" color="secondary" className="text-center text-base mb-6">
               Los registros de entradas y salidas aparecerán aquí.
             </Text>
-            <TouchableOpacity 
-              onPress={() => router.push('/movements/entry' as any)} 
-              className="bg-primary px-6 py-3 rounded-xl active:opacity-80"
-            >
-              <Text className="text-white font-semibold">Registrar entrada</Text>
-            </TouchableOpacity>
+            <View className="flex-row gap-3">
+              <TouchableOpacity 
+                onPress={() => router.push('/movements/entry' as any)} 
+                activeOpacity={0.8}
+                className="bg-success px-5 py-2.5 rounded-xl active:opacity-80 flex-row items-center gap-1.5"
+              >
+                <SymbolView name="plus" size={14} tintColor="#ffffff" />
+                <Text className="text-white font-semibold text-sm">Registrar entrada</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => router.push('/movements/exit' as any)} 
+                activeOpacity={0.8}
+                className="bg-error px-5 py-2.5 rounded-xl active:opacity-80 flex-row items-center gap-1.5"
+              >
+                <SymbolView name="minus" size={14} tintColor="#ffffff" />
+                <Text className="text-white font-semibold text-sm">Registrar salida</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         }
         renderItem={({ item }) => {
           const product = products.find(p => p.id === item.productId);
-          const isEntry = item.type === 'IN';
+          const isEntry = item.type === 'IN' || (item.type as any) === 'ENTRY';
 
           return (
             <View className="bg-surface py-4 px-4 border-b border-border/50">

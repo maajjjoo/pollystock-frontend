@@ -203,6 +203,27 @@ export default function ProductDetailScreen() {
               ))}
             </View>
           )}
+          <View className="mb-6">
+            <Text variant="h3" className="mb-3">Movimientos de Stock</Text>
+            <View className="flex-row gap-3">
+              <TouchableOpacity 
+                onPress={() => router.push({ pathname: '/movements/entry', params: { productId: product.id } } as any)} 
+                activeOpacity={0.8}
+                className="flex-1 flex-row items-center justify-center gap-2 bg-success/15 border border-success/30 py-3.5 px-4 rounded-2xl active:opacity-70"
+              >
+                <SymbolView name="plus" size={16} tintColor="rgb(var(--color-success))" />
+                <Text className="text-success font-bold text-sm">Registrar entrada</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => router.push({ pathname: '/movements/exit', params: { productId: product.id } } as any)} 
+                activeOpacity={0.8}
+                className="flex-1 flex-row items-center justify-center gap-2 bg-error/15 border border-error/30 py-3.5 px-4 rounded-2xl active:opacity-70"
+              >
+                <SymbolView name="minus" size={16} tintColor="rgb(var(--color-error))" />
+                <Text className="text-error font-bold text-sm">Registrar salida</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <Button title="Eliminar Producto" variant="destructive-outline" onPress={handleDelete} />
         </ScrollView>
