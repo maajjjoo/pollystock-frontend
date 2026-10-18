@@ -9,8 +9,10 @@ import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { useMovementStore } from '@/features/stock/hooks/use-movement-store';
 import { BottomNav } from '@/components/ui/BottomNav';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function HomeScreen() {
+  const { colors } = useTheme();
   const { profile, isLoading: configLoading } = useConfigStore();
   const { products, loadProducts, isLoading: productsLoading } = useProductStore();
   const { movements, loadMovements, isLoading: movementsLoading } = useMovementStore();
@@ -27,7 +29,7 @@ export default function HomeScreen() {
   if (configLoading) {
     return (
       <Screen className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator size="large" color="rgb(var(--color-primary))" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </Screen>
     );
   }
@@ -69,7 +71,7 @@ export default function HomeScreen() {
             className="w-10 h-10 rounded-full border border-border items-center justify-center bg-surface"
             accessibilityLabel="Configuración del negocio"
           >
-            <SymbolView name="gearshape" size={20} tintColor="rgb(var(--color-text))" />
+            <SymbolView name="gearshape" size={20} tintColor={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -89,7 +91,7 @@ export default function HomeScreen() {
             {/* Card 1: Productos */}
             <View className="flex-1 bg-surface border border-border rounded-[20px] p-4 shadow-sm">
               <View className="w-10 h-10 bg-primary/10 rounded-full items-center justify-center mb-3">
-                <SymbolView name="square.stack.3d.up" size={20} tintColor="rgb(var(--color-primary))" />
+                <SymbolView name="square.stack.3d.up" size={20} tintColor={colors.primary} />
               </View>
               <Text className="text-3xl font-bold text-text mb-1">{totalProducts}</Text>
               <Text className="text-sm text-text-secondary">Productos</Text>
@@ -98,7 +100,7 @@ export default function HomeScreen() {
             {/* Card 2: Stock bajo */}
             <View className="flex-1 bg-surface border border-border rounded-[20px] p-4 shadow-sm">
               <View className="w-10 h-10 bg-warning/10 rounded-full items-center justify-center mb-3">
-                <SymbolView name="exclamationmark.triangle" size={20} tintColor="rgb(var(--color-warning))" />
+                <SymbolView name="exclamationmark.triangle" size={20} tintColor={colors.warning} />
               </View>
               <Text className="text-3xl font-bold text-text mb-1">{lowStockProducts.length}</Text>
               <Text className="text-sm text-text-secondary">Stock bajo</Text>
@@ -107,7 +109,7 @@ export default function HomeScreen() {
             {/* Card 3: Agotados */}
             <View className="flex-1 bg-surface border border-border rounded-[20px] p-4 shadow-sm">
               <View className="w-10 h-10 bg-error/10 rounded-full items-center justify-center mb-3">
-                <SymbolView name="cube.box" size={20} tintColor="rgb(var(--color-error))" />
+                <SymbolView name="cube.box" size={20} tintColor={colors.error} />
               </View>
               <Text className="text-3xl font-bold text-text mb-1">{outOfStockProducts.length}</Text>
               <Text className="text-sm text-text-secondary">Agotados</Text>
@@ -131,7 +133,7 @@ export default function HomeScreen() {
             <Text className="text-lg font-bold text-text">Alertas de inventario</Text>
             <TouchableOpacity onPress={() => router.push('/products' as any)} className="flex-row items-center">
               <Text className="text-primary font-medium text-sm mr-1">Ver inventario</Text>
-              <SymbolView name="chevron.right" size={12} tintColor="rgb(var(--color-primary))" />
+              <SymbolView name="chevron.right" size={12} tintColor={colors.primary} />
             </TouchableOpacity>
           </View>
 
@@ -143,7 +145,7 @@ export default function HomeScreen() {
               <View className="w-1.5 h-full bg-warning absolute left-0 top-0 bottom-0 z-10" />
               <View className="p-4 pl-6 flex-row items-center w-full">
                 <View className="w-12 h-12 bg-warning/10 rounded-xl items-center justify-center mr-4">
-                  <SymbolView name="cube.box" size={24} tintColor="rgb(var(--color-warning))" />
+                  <SymbolView name="cube.box" size={24} tintColor={colors.warning} />
                 </View>
                 <View className="flex-1">
                   <Text className="font-bold text-text text-base mb-0.5" numberOfLines={1}>{lowStockProducts[0].name}</Text>
@@ -167,7 +169,7 @@ export default function HomeScreen() {
           <View className="bg-primary/5 rounded-[20px] p-5">
             <View className="flex-row items-start mb-4">
               <View className="w-12 h-12 bg-surface rounded-xl items-center justify-center mr-4 shadow-sm border border-border/50">
-                <SymbolView name="sparkles" size={24} tintColor="rgb(var(--color-primary))" />
+                <SymbolView name="sparkles" size={24} tintColor={colors.primary} />
               </View>
               <View className="flex-1 pt-1">
                 <Text className="font-bold text-text text-base mb-2">Una oportunidad para reponer</Text>
@@ -183,7 +185,7 @@ export default function HomeScreen() {
               <Text className="text-text-secondary text-xs">Basado en movimientos recientes</Text>
               <TouchableOpacity onPress={() => router.push('/assistant' as any)} className="flex-row items-center">
                 <Text className="text-primary font-medium text-sm mr-1">Ver análisis</Text>
-                <SymbolView name="chevron.right" size={12} tintColor="rgb(var(--color-primary))" />
+                <SymbolView name="chevron.right" size={12} tintColor={colors.primary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -196,7 +198,7 @@ export default function HomeScreen() {
             {recentMovements.length > 0 && (
               <TouchableOpacity onPress={() => router.push('/movements' as any)} className="flex-row items-center">
                 <Text className="text-primary font-medium text-sm mr-1">Ver todo</Text>
-                <SymbolView name="chevron.right" size={12} tintColor="rgb(var(--color-primary))" />
+                <SymbolView name="chevron.right" size={12} tintColor={colors.primary} />
               </TouchableOpacity>
             )}
           </View>
@@ -244,6 +246,7 @@ export default function HomeScreen() {
 }
 
 function WelcomeIntro() {
+  const { colors } = useTheme();
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(20));
 
@@ -274,7 +277,7 @@ function WelcomeIntro() {
         }}
       >
         <View className="w-24 h-24 bg-primary/10 rounded-[32px] items-center justify-center mb-10">
-          <SymbolView name="cube.box.fill" size={48} tintColor="rgb(var(--color-primary))" />
+          <SymbolView name="cube.box.fill" size={48} tintColor={colors.primary} />
         </View>
         
         <Text variant="h1" className="text-center mb-4">Tu asistente de inventario</Text>

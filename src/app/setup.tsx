@@ -12,6 +12,8 @@ import { Select } from '@/components/ui/Select';
 import { BusinessProfile, AttributeDefinition, DataType } from '@/core/database/schema';
 import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 import { ValidationRules } from '@/utils/validation';
+import { normalizeTheme } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 const PRESET_BUSINESS_TYPES = [
   'Ropa y Accesorios',
@@ -24,6 +26,7 @@ const PRESET_BUSINESS_TYPES = [
 ];
 
 export default function SetupScreen() {
+  const { colors } = useTheme();
   const { profile, attributes: storedAttributes, saveProfile, saveAttributes, loadConfig } = useConfigStore();
   const [loading, setLoading] = useState(false);
 
@@ -131,7 +134,7 @@ export default function SetupScreen() {
         useMinStock,
         minStock: useMinStock ? Number(minStock) || 5 : undefined,
         useExpirationDates,
-        theme: profile?.theme || 'theme-natural',
+        theme: normalizeTheme(profile?.theme),
       };
 
       await saveProfile(profileData);
@@ -186,7 +189,7 @@ export default function SetupScreen() {
         {profile && (
           <View className="flex-row items-center justify-between mb-3">
             <TouchableOpacity onPress={() => router.back()} className="flex-row items-center py-1">
-              <SymbolView name="chevron.left" size={18} tintColor="#64748b" />
+              <SymbolView name="chevron.left" size={18} tintColor={colors.textSecondary} />
               <Text variant="caption" color="secondary" className="ml-1 font-medium">Volver a ajustes</Text>
             </TouchableOpacity>
             <Text variant="caption" color="secondary" className="font-semibold">Editar perfil</Text>

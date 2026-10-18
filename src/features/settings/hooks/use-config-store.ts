@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Alert } from 'react-native';
 import { BusinessProfile, AttributeDefinition } from '@/core/database/schema';
+import { normalizeTheme } from '@/constants/theme';
 import {
   getBusinessProfile,
   getAttributeDefinitions,
@@ -30,7 +31,10 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     try {
       const profile = await getBusinessProfile();
       const attributes = await getAttributeDefinitions();
-      set({ profile, attributes, isLoading: false });
+      const normalizedProfile = profile
+        ? { ...profile, theme: normalizeTheme(profile.theme) }
+        : null;
+      set({ profile: normalizedProfile, attributes, isLoading: false });
     } catch (error: any) {
       console.error('Failed to load config', error);
       Alert.alert('Error de conexión', error.message || 'No se pudo cargar la configuración.');
@@ -38,12 +42,18 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     }
   },
   saveProfile: async (updatedProfile: BusinessProfile) => {
-    set({ isSaving: true });
+    const previousProfile = get().profile;
+    const normalizedProfile: BusinessProfile = {
+      ...updatedProfile,
+      theme: normalizeTheme(updatedProfile.theme),
+    };
+    // Optimistic immediate update for instant UI response:
+    set({ profile: normalizedProfile, isSaving: true });
     try {
-      await saveBusinessProfile(updatedProfile);
-      set({ profile: updatedProfile, isSaving: false });
-    } catch (error: any) {
+      await saveBusinessProfile(normalizedProfile);
       set({ isSaving: false });
+    } catch (error: any) {
+      set({ profile: previousProfile, isSaving: false });
       console.error('Failed to save profile', error);
       throw error;
     }

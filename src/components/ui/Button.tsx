@@ -1,6 +1,7 @@
 import { TouchableOpacity, TouchableOpacityProps, ActivityIndicator, View } from 'react-native';
 import { SymbolView, SFSymbol } from 'expo-symbols';
 import { Text } from './Text';
+import { useTheme } from '@/hooks/use-theme';
 
 export interface ButtonProps extends TouchableOpacityProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'destructive' | 'destructive-outline';
@@ -13,12 +14,13 @@ export interface ButtonProps extends TouchableOpacityProps {
 export function Button({ 
   variant = 'primary', 
   title, 
-  icon,
+  icon, 
   loading = false, 
   disabled, 
   className = '', 
   ...props 
 }: ButtonProps) {
+  const { colors } = useTheme();
   
   const baseStyles = 'py-4 px-6 rounded-2xl flex-row justify-center items-center active:opacity-80';
   
@@ -50,6 +52,10 @@ export function Button({
     }
   }
 
+  const iconTintColor = variant !== 'outline' && variant !== 'destructive-outline' && variant !== 'secondary' && !disabled
+    ? 'white'
+    : (variant === 'destructive-outline' ? colors.error : colors.primary);
+
   return (
     <TouchableOpacity
       disabled={disabled || loading}
@@ -57,7 +63,13 @@ export function Button({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' || variant === 'destructive-outline' ? (variant === 'outline' ? 'rgb(var(--color-primary))' : 'rgb(var(--color-error))') : 'white'} />
+        <ActivityIndicator 
+          color={
+            variant === 'outline' || variant === 'destructive-outline' 
+              ? (variant === 'outline' ? colors.primary : colors.error) 
+              : 'white'
+          } 
+        />
       ) : (
         <View className="flex-row items-center justify-center">
           {icon && (
@@ -65,14 +77,18 @@ export function Button({
               <SymbolView 
                 name={icon} 
                 size={18} 
-                tintColor={variant !== 'outline' && variant !== 'destructive-outline' && variant !== 'secondary' && !disabled ? 'white' : (variant === 'destructive-outline' ? 'rgb(var(--color-error))' : 'rgb(var(--color-primary))')} 
+                tintColor={iconTintColor} 
               />
             </View>
           )}
           <Text 
             variant="body" 
             color={textVariant} 
-            className={`font-semibold text-base ${variant !== 'outline' && variant !== 'destructive-outline' && variant !== 'secondary' && !disabled ? 'text-white' : ''}`}
+            className={`font-semibold text-base ${
+              variant !== 'outline' && variant !== 'destructive-outline' && variant !== 'secondary' && !disabled 
+                ? 'text-white' 
+                : ''
+            }`}
           >
             {title}
           </Text>

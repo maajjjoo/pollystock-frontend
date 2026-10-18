@@ -11,8 +11,11 @@ import { ValidationRules } from '@/utils/validation';
 import { BottomNav } from '@/components/ui/BottomNav';
 
 import { BusinessProfile } from '@/core/database/schema';
+import { normalizeTheme } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function SettingsScreen() {
+  const { colors, themeClass } = useTheme();
   const { profile, saveProfile, isSaving } = useConfigStore();
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editField, setEditField] = useState<{ key: keyof BusinessProfile, label: string, maxLen: number, isNumeric?: boolean } | null>(null);
@@ -153,11 +156,7 @@ export default function SettingsScreen() {
         <View className="bg-surface border border-border rounded-2xl px-4 overflow-hidden mx-4 mb-6">
           <SettingsRow 
             title="Tema" 
-            value={
-              profile.theme === 'theme-ocean' ? 'Océano' : 
-              profile.theme === 'theme-warm' ? 'Cálido' : 
-              profile.theme === 'theme-classic' ? 'Clásico' : 'Natural'
-            } 
+            value={normalizeTheme(profile.theme) === 'dark' ? 'Oscuro' : 'Claro'} 
             onPress={() => router.push('/settings/theme' as any)} 
             isLast
           />
@@ -186,12 +185,18 @@ export default function SettingsScreen() {
 
       {/* Edit Modal for simple text fields */}
       <Modal visible={editModalVisible} animationType="slide" transparent>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 justify-end bg-overlay/40">
-          <View className="bg-surface rounded-t-3xl p-6 shadow-lg">
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          className={`flex-1 justify-end bg-black/60 ${themeClass}`}
+        >
+          <View className="bg-surface rounded-t-3xl p-6 shadow-lg border-t border-border">
             <View className="flex-row justify-between items-center mb-6">
               <Text variant="h2" className="text-xl">Editar {editField?.label.toLowerCase()}</Text>
-              <TouchableOpacity onPress={() => setEditModalVisible(false)} className="w-8 h-8 items-center justify-center bg-surface-variant rounded-full">
-                <SymbolView name="xmark" size={16} tintColor="rgb(var(--color-text))" />
+              <TouchableOpacity 
+                onPress={() => setEditModalVisible(false)} 
+                className="w-8 h-8 items-center justify-center bg-surface-variant rounded-full border border-border"
+              >
+                <SymbolView name="xmark" size={16} tintColor={colors.text} />
               </TouchableOpacity>
             </View>
             <TextInput 
@@ -230,10 +235,12 @@ function SettingsRow({
 }: { 
   title: string; 
   value?: string; 
-  valueColor?: string;
+  valueColor?: string; 
   onPress: () => void; 
   isLast?: boolean;
 }) {
+  const { colors } = useTheme();
+
   return (
     <TouchableOpacity 
       onPress={onPress}
@@ -244,7 +251,7 @@ function SettingsRow({
         {value ? (
           <Text className={`text-base ${valueColor} mr-2 flex-shrink`} numberOfLines={1}>{value}</Text>
         ) : null}
-        <SymbolView name="chevron.right" size={16} tintColor="rgb(var(--color-disabled))" />
+        <SymbolView name="chevron.right" size={16} tintColor={colors.disabled} />
       </View>
     </TouchableOpacity>
   );
