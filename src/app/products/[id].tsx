@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ScrollView, View, Alert, TouchableOpacity, Image } from 'react-native';
+import { ScrollView, View, Alert, TouchableOpacity, Image, Platform } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { Screen } from '@/components/ui/Screen';
@@ -12,6 +12,7 @@ import { useConfigStore } from '@/features/settings/hooks/use-config-store';
 import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { Product } from '@/core/database/schema';
 import { ValidationRules, validatePositiveNumber, sanitizeNumericInput } from '@/utils/validation';
+import { pickImageFromLibrary, takePhotoWithCamera } from '@/utils/imagePicker';
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -30,6 +31,20 @@ export default function ProductDetailScreen() {
   const [imageUrl, setImageUrl] = useState('');
   const [dynamicValues, setDynamicValues] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handlePickImage = async () => {
+    const uri = await pickImageFromLibrary();
+    if (uri) {
+      setImageUrl(uri);
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    const uri = await takePhotoWithCamera();
+    if (uri) {
+      setImageUrl(uri);
+    }
+  };
 
   useEffect(() => {
     const product = products.find(p => p.id === id);
@@ -211,17 +226,8 @@ export default function ProductDetailScreen() {
         {/* Image Edit */}
         <View className="items-center mb-8">
           <TouchableOpacity 
-            onPress={() => {
-              Alert.alert(
-                'Seleccionar imagen',
-                'Elige una opción',
-                [
-                  { text: 'Cancelar', style: 'cancel' },
-                  { text: 'Cámara', onPress: () => setImageUrl('https://placehold.co/400x400/eeeeee/999999.png?text=Foto+Simulada') },
-                  { text: 'Galería', onPress: () => setImageUrl('https://placehold.co/400x400/eeeeee/999999.png?text=Imagen+Simulada') },
-                ]
-              );
-            }}
+            onPress={handlePickImage}
+            activeOpacity={0.8}
             className="w-32 h-32 rounded-3xl bg-surface border border-border shadow-sm items-center justify-center overflow-hidden active:opacity-80"
           >
             {imageUrl ? (
@@ -233,10 +239,27 @@ export default function ProductDetailScreen() {
               </View>
             )}
           </TouchableOpacity>
-          {imageUrl && (
-            <TouchableOpacity onPress={() => setImageUrl('')} className="mt-3 bg-surface-variant px-4 py-1.5 rounded-full border border-border">
-              <Text variant="caption" className="font-medium text-text-secondary">Quitar imagen</Text>
-            </TouchableOpacity>
+
+          {imageUrl ? (
+            <View className="flex-row items-center gap-3 mt-3">
+              <TouchableOpacity onPress={handlePickImage} className="bg-surface-variant px-3.5 py-1.5 rounded-full border border-border">
+                <Text variant="caption" className="font-semibold text-primary">Cambiar foto</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setImageUrl('')} className="bg-surface-variant px-3.5 py-1.5 rounded-full border border-border">
+                <Text variant="caption" className="font-semibold text-error">Quitar imagen</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View className="flex-row items-center gap-3 mt-3">
+              <TouchableOpacity onPress={handlePickImage} className="bg-surface-variant px-3.5 py-1.5 rounded-full border border-border">
+                <Text variant="caption" className="font-semibold text-primary">Elegir de la galería</Text>
+              </TouchableOpacity>
+              {Platform.OS !== 'web' && (
+                <TouchableOpacity onPress={handleTakePhoto} className="bg-surface-variant px-3.5 py-1.5 rounded-full border border-border">
+                  <Text variant="caption" className="font-medium text-text-secondary">Tomar foto</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           )}
         </View>
 
