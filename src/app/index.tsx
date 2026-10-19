@@ -10,6 +10,8 @@ import { useProductStore } from '@/features/products/hooks/use-product-store';
 import { useMovementStore } from '@/features/stock/hooks/use-movement-store';
 import { BottomNav } from '@/components/ui/BottomNav';
 import { useTheme } from '@/hooks/use-theme';
+import { getInventoryInsights, formatAIErrorMessage } from '@/features/ai/services/aiService';
+import { AIInsightsData } from '@/features/ai/types';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -17,13 +19,32 @@ export default function HomeScreen() {
   const { products, loadProducts, isLoading: productsLoading } = useProductStore();
   const { movements, loadMovements, isLoading: movementsLoading } = useMovementStore();
 
+  const [insights, setInsights] = useState<AIInsightsData | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [insightsError, setInsightsError] = useState<string | null>(null);
+
+  const fetchInsights = useCallback(async () => {
+    if (!profile) return;
+    setInsightsLoading(true);
+    setInsightsError(null);
+    try {
+      const data = await getInventoryInsights(profile.id);
+      setInsights(data);
+    } catch (err: unknown) {
+      setInsightsError(formatAIErrorMessage(err));
+    } finally {
+      setInsightsLoading(false);
+    }
+  }, [profile]);
+
   useFocusEffect(
     useCallback(() => {
       if (profile && !configLoading) {
         loadProducts();
         loadMovements();
+        fetchInsights();
       }
-    }, [profile, configLoading])
+    }, [profile, configLoading, fetchInsights])
   );
 
   if (configLoading) {
@@ -165,29 +186,93 @@ export default function HomeScreen() {
 
         {/* Análisis inteligente */}
         <View className="px-6 mb-8">
-          <Text className="text-lg font-bold text-text mb-4">Análisis inteligente</Text>
-          <View className="bg-primary/5 rounded-[20px] p-5">
-            <View className="flex-row items-start mb-4">
-              <View className="w-12 h-12 bg-surface rounded-xl items-center justify-center mr-4 shadow-sm border border-border/50">
-                <SymbolView name="sparkles" size={24} tintColor={colors.primary} />
-              </View>
-              <View className="flex-1 pt-1">
-                <Text className="font-bold text-text text-base mb-2">Una oportunidad para reponer</Text>
-                <Text className="text-text-secondary text-sm leading-relaxed mb-1">
-                  {lowStockProducts.length > 0 
-                    ? `${lowStockProducts.length} productos se venden con frecuencia y tienen poco stock. Revisa las existencias antes de tu próxima compra.`
-                    : 'Tu inventario se encuentra en un estado óptimo. Sigue registrando tus ventas y entradas para obtener más recomendaciones.'}
-                </Text>
-              </View>
-            </View>
-            <View className="h-px bg-border/50 my-3" />
-            <View className="flex-row justify-between items-center">
-              <Text className="text-text-secondary text-xs">Basado en movimientos recientes</Text>
-              <TouchableOpacity onPress={() => router.push('/assistant' as any)} className="flex-row items-center">
-                <Text className="text-primary font-medium text-sm mr-1">Ver análisis</Text>
-                <SymbolView name="chevron.right" size={12} tintColor={colors.primary} />
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-lg font-bold text-text">Análisis inteligente</Text>
+            {insights && (
+              <TouchableOpacity onPress={fetchInsights} disabled={insightsLoading} className="flex-row items-center">
+                <SymbolView name="arrow.clockwise" size={13} tintColor={colors.primary} className="mr-1" />
+                <Text className="text-primary text-xs font-semibold">Actualizar</Text>
               </TouchableOpacity>
-            </View>
+            )}
+          </View>
+
+          <View className="bg-primary/5 rounded-[20px] p-5 border border-primary/10 shadow-sm">
+            {insightsLoading ? (
+              <View className="py-6 items-center justify-center">
+                <ActivityIndicator size="small" color={colors.primary} className="mb-3" />
+                <Text className="text-text font-medium text-sm">Consultando a PollyStock AI...</Text>
+                <Text className="text-text-secondary text-xs mt-1">Interpretando métricas reales de inventario</Text>
+              </View>
+            ) : insightsError ? (
+              <View>
+                <View className="flex-row items-start mb-3">
+                  <View className="w-10 h-10 bg-error/10 rounded-xl items-center justify-center mr-3">
+                    <SymbolView name="exclamationmark.triangle" size={20} tintColor={colors.error} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-bold text-text text-sm mb-1">Diagnóstico no disponible</Text>
+                    <Text className="text-text-secondary text-xs leading-relaxed">{insightsError}</Text>
+                  </View>
+                </View>
+                <TouchableOpacity onPress={fetchInsights} className="bg-surface border border-border/80 rounded-xl px-3 py-2 flex-row items-center justify-center self-start mt-1">
+                  <SymbolView name="arrow.clockwise" size={12} tintColor={colors.primary} className="mr-1.5" />
+                  <Text className="text-primary text-xs font-bold">Reintentar conexión</Text>
+                </TouchableOpacity>
+              </View>
+            ) : insights ? (
+              <View>
+                <View className="flex-row items-start mb-3">
+                  <View className="w-12 h-12 bg-surface rounded-xl items-center justify-center mr-4 shadow-sm border border-border/50">
+                    <SymbolView name="sparkles" size={24} tintColor={colors.primary} />
+                  </View>
+                  <View className="flex-1 pt-1">
+                    <View className="flex-row items-center flex-wrap gap-1.5 mb-1.5">
+                      <Text className="font-bold text-text text-base">Diagnóstico con IA</Text>
+                      {insights.historySufficiency?.level === 'MINIMAL' && (
+                        <View className="bg-warning/15 px-2 py-0.5 rounded-full">
+                          <Text className="text-warning text-[10px] font-bold">Datos iniciales</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text className="text-text-secondary text-sm leading-relaxed mb-2" numberOfLines={3}>
+                      {insights.summary
+                        ? insights.summary
+                            .replace(/^#+.*$/gm, '')
+                            .replace(/\*\*/g, '')
+                            .replace(/^---.*$/gm, '')
+                            .replace(/^[*•-]\s*/gm, '')
+                            .trim()
+                            .split('\n')
+                            .filter(Boolean)
+                            .join(' ')
+                            .substring(0, 180) + '...'
+                        : 'El inventario fue analizado por la IA. Consulta los detalles en el asistente.'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View className="h-px bg-border/50 my-2.5" />
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-text-secondary text-xs">
+                    {insights.model ? `Modelo: ${insights.model}` : 'Basado en métricas reales'}
+                  </Text>
+                  <TouchableOpacity onPress={() => router.push('/assistant' as any)} className="flex-row items-center">
+                    <Text className="text-primary font-medium text-sm mr-1">Consultar al asistente</Text>
+                    <SymbolView name="chevron.right" size={12} tintColor={colors.primary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <View className="py-4 items-center justify-center">
+                <Text className="text-text-secondary text-sm mb-3 text-center">
+                  Obtén recomendaciones y un diagnóstico automático de tus existencias.
+                </Text>
+                <TouchableOpacity onPress={fetchInsights} className="bg-primary px-4 py-2 rounded-xl flex-row items-center">
+                  <SymbolView name="sparkles" size={14} tintColor="white" className="mr-1.5" />
+                  <Text className="text-white text-xs font-bold">Generar análisis con IA</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
 
