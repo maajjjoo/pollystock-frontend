@@ -9,7 +9,7 @@
 export function getBaseApiUrl(): string {
   const envUrl = process.env.EXPO_PUBLIC_API_URL;
   if (envUrl && envUrl.trim()) {
-    return envUrl.trim().replace(/\/+$/, '');
+    return envUrl.trim().replace(/[\/\}]+$/, '');
   }
   return 'http://10.0.2.2:3000/api';
 }
